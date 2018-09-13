@@ -1,0 +1,24 @@
+matrix:
+  include:
+    - os: linux
+      sudo: false
+      dist: trusty
+      language: cpp
+      services:
+        - docker
+      script:
+        - docker build -t hipopy . -f docker/Dockerfile.py2
+        - docker images -a
+    - os: osx
+      language: cpp
+      cache:
+        directories:
+          - $HOME/Library/Caches/Homebrew
+      script:
+        - export SOURCE=$PWD
+        - brew install lz4; echo "Done"
+        - pip install cython scikit-build numpy
+        - mkdir build && cd build
+        - cmake .. -DCMAKE_INSTALL_PREFIX=$SOURCE/install
+        - make
+        - make install

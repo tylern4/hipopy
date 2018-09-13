@@ -1,0 +1,11 @@
+image: python:2.7
+
+before_script:
+  - apt-get install -y cmake liblz4-dev cython
+  - pip install numpy matplotlib pandas scikit-hep ipython uproot lz4
+
+build:
+  script:
+  - cmake ..
+  - make
+  - make install
