@@ -3,7 +3,7 @@
 
 
 ## Build
-```
+```shell
 git clone https://github.com/tylern4/hipopy.git
 cd hipopy
 mkdir build
@@ -14,7 +14,7 @@ make install
 ```
 
 ## Basic Example
-```
+```python
 #!/usr/bin/env python
 from __future__ import print_function
 from hipopy import hipo_reader
@@ -41,7 +41,7 @@ while(reader.next()):
 ```
 
 ## Benchmark
-```
+```python
 import time
 start = time.time()
 
@@ -55,15 +55,19 @@ end = time.time()
 
 print(i,(end-start))
 ```
-> (1429931, 12.387712001800537)
+
+```shell
+(1429931, 12.387712001800537)
+```
+
 
 ## Docker
-```
+```shell
 docker run -v /local/path/to/data:/tmp --rm -it tylern4/hipopy
 ```
 
 ## Singularity on the Farm
-```
+```shell
 module load singularity
 setenv SINGULARITY_CACHEDIR /volatile/clas12/tylern/sing_cache
 singularity exec docker://tylern4/hipopy ipython

@@ -83,7 +83,7 @@ cdef class char_node:
   cpdef char getValue(self, x):
     return self.c_node.getValue(x)
 
-  cpdef char getLength(self):
+  cpdef int getLength(self):
     return self.c_node.getLength()
 
 
@@ -127,7 +127,7 @@ cdef class short_node:
   cdef setup(self, node[short]* node):
     self.c_node = node
 
-  cpdef float getValue(self, x):
+  cpdef short getValue(self, x):
     return self.c_node.getValue(x)
 
   cpdef int getLength(self):
