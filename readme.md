@@ -1,4 +1,7 @@
 [![Travis Build Status](https://travis-ci.org/tylern4/hipopy.svg?branch=master)](https://travis-ci.org/tylern4/hipopy)
+[![pipeline status](https://gitlab.com/tylern4/hipopy/badges/master/pipeline.svg)](https://gitlab.com/tylern4/hipopy/commits/master)
+
+
 ## Build
 ```
 git clone https://github.com/tylern4/hipopy.git
@@ -11,7 +14,6 @@ make install
 ```
 
 ## Basic Example
-
 ```
 #!/usr/bin/env python
 from __future__ import print_function
@@ -42,23 +44,27 @@ while(reader.next()):
 ```
 import time
 start = time.time()
+
 import hipopy;
 reader = hipopy.hipo_reader(u"/tmp/4070_8.hipo");
 i = 0
 while(reader.next()):
     i += 1
+
 end = time.time()
+
 print(i,(end-start))
 ```
->>> (1429931, 12.387712001800537)
+> (1429931, 12.387712001800537)
 
 ## Docker
 ```
 docker run -v /local/path/to/data:/tmp --rm -it tylern4/hipopy
 ```
 
-## Singularity
+## Singularity on the Farm
 ```
-singularity shell docker://tylern4/hipopy
-ipython
+module load singularity
+setenv SINGULARITY_CACHEDIR /volatile/clas12/tylern/sing_cache
+singularity exec docker://tylern4/hipopy ipython
 ```
