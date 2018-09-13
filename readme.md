@@ -1,9 +1,21 @@
+## Build
+```
+git clone https://github.com/tylern4/hipopy.git
+cd hipopy
+mkdir build
+cd build
+cmake ..
+make -j$(nproc)
+make install
+```
+
+## Basic Example
+
+```
 #!/usr/bin/env python
 from __future__ import print_function
 from hipopy import hipo_reader
 import sys
-import numpy as np
-
 
 file_name = sys.argv[1]
 reader = hipo_reader(unicode(file_name, "utf-8"))
@@ -12,26 +24,40 @@ rec_part_pid = reader.getIntNode(u"REC::Particle", u"pid")
 rec_part_px = reader.getFloatNode(u"REC::Particle", u"px")
 rec_part_py = reader.getFloatNode(u"REC::Particle", u"py")
 rec_part_pz = reader.getFloatNode(u"REC::Particle", u"pz")
-rec_part_vx = reader.getFloatNode(u"REC::Particle", u"vx")
-rec_part_vy = reader.getFloatNode(u"REC::Particle", u"vy")
-rec_part_vz = reader.getFloatNode(u"REC::Particle", u"vz")
-rec_part_charge = reader.getByteNode(u"REC::Particle", u"charge")
-rec_part_beta = reader.getFloatNode(u"REC::Particle", u"beta")
 
-px_hipo = []
 num = 0
-while(reader.next() and num < 20):
+while(reader.next()):
     num += 1
     print("Event:")
     for i in range(0, rec_part_pid.getLength()):
-        px_hipo.append(rec_part_px[i])
         print("pid\t" + str(rec_part_pid[i]))
         print("px\t" + str(rec_part_px[i]))
         print("py\t" + str(rec_part_py[i]))
         print("pz\t" + str(rec_part_pz[i]))
-        print("vx\t" + str(rec_part_vx[i]))
-        print("vy\t" + str(rec_part_vy[i]))
-        print("vz\t" + str(rec_part_vz[i]))
-        print("q\t" + str(rec_part_charge[i]))
-        print("b\t" + str(rec_part_beta[i]))
     print()
+```
+
+## Benchmark
+```
+import time
+start = time.time()
+import hipopy;
+reader = hipopy.hipo_reader(u"/tmp/4070_8.hipo");
+i = 0
+while(reader.next()):
+    i += 1
+end = time.time()
+print(i,(end-start))
+```
+>>> (1429931, 12.387712001800537)
+
+## Docker
+```
+docker run -v /local/path/to/data:/tmp --rm -it tylern4/hipopy
+```
+
+## Singularity
+```
+singularity shell docker://tylern4/hipopy
+ipython
+```

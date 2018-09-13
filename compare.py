@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 from __future__ import print_function
 import uproot
 from hipopy import hipo_reader
@@ -16,8 +17,6 @@ for pid, pxi, pyi, pzi in zip(pid, px, py, pz):
             momentum_root.append(math.sqrt(pxj**2 + pyj**2 + pzj**2))
 
 
-plt.hist(momentum_root, bins=500, range=(0, 5))
-
 file_name = sys.argv[1]
 reader = hipo_reader(unicode(file_name, "utf-8"))
 rec_part_px = reader.getFloatNode(u"REC::Particle", u"px")
@@ -33,9 +32,7 @@ while(reader.next()):
             momentum_hipo.append(
                 math.sqrt(rec_part_px[i]**2 + rec_part_py[i]**2 + rec_part_pz[i]**2))
 
-plt.hist(momentum_hipo, bins=500, range=(0, 5))
+plt.hist(momentum_root, bins=500, range=(0, 5))
 plt.show()
-
-
-plt.plot(momentum_root, momentum_hipo)
+plt.hist(momentum_hipo, bins=500, range=(0, 5))
 plt.show()
