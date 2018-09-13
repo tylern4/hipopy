@@ -1,3 +1,4 @@
+[![Travis Build Status](https://travis-ci.org/tylern4/hipopy.svg?branch=master)](https://travis-ci.org/tylern4/hipopy)
 ## Build
 ```
 git clone https://github.com/tylern4/hipopy.git
