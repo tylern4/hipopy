@@ -138,12 +138,9 @@ cdef class hipo_reader:
   """Hipo_reader based on hipo::reader class"""
   # Define hipo::reader class
   cdef reader*c_reader
-  def __cinit__(self):
-    self.c_reader = new reader(True)
-
-  def __cinit__(self, str filename, bool randomAccess = True):
+  def __cinit__(self, str filename):
     """Initialize hipo_reader with a file"""
-    self.c_reader = new reader(randomAccess)
+    self.c_reader = new reader()
     self.open(filename)
 
   def __str__(self):
