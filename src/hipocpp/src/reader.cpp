@@ -53,7 +53,7 @@ void reader::open(const char *filename) {
   inputStreamSize = inputStream.tellg();
   inputStream.seekg(0, std::ios_base::beg);
   if (inputStream.is_open() == false) {
-    printf("[ERROR] something went wrong with openning file : %s\n", filename);
+    std::cerr << "[ERROR] something went wrong with openning file : %s\n" << filename << std::endl;
     return;
   }
   readHeader();
@@ -80,8 +80,8 @@ void reader::open(const char *filename) {
     } else {
       sequence.setNextPosition(positionOffset + length);
     }
-    printf(" read record = %12ld next %12ld  nevenets = %d length = %d\n", sequence.getPosition(),
-           sequence.getNextPosition(), sequence.getRecordEvents(), length);
+    // printf(" read record = %12ld next %12ld  nevenets = %d length = %d\n", sequence.getPosition(),
+    //       sequence.getNextPosition(), sequence.getRecordEvents(), length);
   }
 
   readDictionary();
@@ -243,11 +243,11 @@ void reader::readRecordIndex() {
 
     version = (version & 0x000000FF);
     if (version != 6) {
-      printf(" version error : %d\n", version);
+      std::cerr << " version error : " << version << std::endl;
       break;
     }
     if (magic_number != 0xc0da0100 && magic_number != 0x0001dac0) {
-      printf("magic number error : %X\n", (unsigned int)magic_number);
+      std::cerr << "magic number error : " << (unsigned int)magic_number << std::endl;
       break;
     }
 
@@ -260,7 +260,7 @@ void reader::readRecordIndex() {
     /*printf(" next position (%4d) : %16ld file size %ld events = %d\n",
       icounter,positionOffset,hipoFileSize, recIndex.recordEvents);*/
   }
-  printf("total records = %d  index array = %d\n", icounter, (unsigned int)recordIndex.size());
+  // printf("total records = %d  index array = %d\n", icounter, (unsigned int)recordIndex.size());
 }
 
 hipo::dictionary *reader::getSchemaDictionary() { return &schemaDictionary; }

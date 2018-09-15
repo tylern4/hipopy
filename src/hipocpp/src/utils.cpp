@@ -59,6 +59,7 @@ std::string utils::substring(const std::string &str, const char *start_delim, co
 }
 
 void utils::printLogo() {
+  /*
   std::cout << "************************************************" << std::endl;
   std::cout << "*         >=<         ---------------------    *" << std::endl;
   std::cout << "*    ,.--'  ''-.      HIPO 3.0 I/O Library     *" << std::endl;
@@ -66,6 +67,7 @@ void utils::printLogo() {
   std::cout << "*     Xx'xX           Date: 10/27/2017         *" << std::endl;
   std::cout << "************************************************" << std::endl;
   std::cout << std::endl;
+  */
 }
 
 std::string utils::getHeader() {

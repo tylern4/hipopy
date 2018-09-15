@@ -12,7 +12,7 @@ namespace hipo {
 
 int schema::getType(const char* entry) {
   if (schemaEntries.count(entry) == 0) {
-    printf("schema:: error, schema %s does no contain entry %s\n", schemaName.c_str(), entry);
+    std::cerr << "schema:: error, schema " << schemaName << " does no contain entry " << entry << std::endl;
   }
   return schemaEntries[entry].second;
 }
@@ -37,7 +37,7 @@ std::vector<std::string> schema::getEntryList() {
 
 int schema::getItem(const char* entry) {
   if (schemaEntries.count(entry) == 0) {
-    printf("schema:: error, schema %s does no contain entry %s\n", schemaName.c_str(), entry);
+    std::cerr << "schema:: error, schema " << schemaName << " does no contain entry " << entry << std::endl;
   }
   return schemaEntries[entry].first;
 }
@@ -223,7 +223,9 @@ void dictionary::parse(std::string dictString) {
       if (type != 0) {
         schema.addEntry(tokens[1].c_str(), item, type);
       } else {
-        printf("** error ** entry %s int schema %s has undefined type.\n", schema.getName().c_str(), tokens[1].c_str());
+        // std::cerr << "** error ** entry " << schema.getName() << " int schema " << tokens[1] << " has undefined
+        // type."
+        //          << std::endl;
       }
       /*printf("\t found item %s %s %s\n",tokens[0].c_str(),tokens[1].c_str(),
              tokens[2].c_str());*/
