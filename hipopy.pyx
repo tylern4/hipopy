@@ -2,6 +2,7 @@
 from libcpp.vector cimport vector
 from libcpp.string cimport string
 from libcpp cimport bool
+import numpy as np
 
 import json
 
@@ -243,3 +244,41 @@ cdef class hipo_reader:
     py_node = short_node()
     py_node.setup(c_node)
     return py_node
+
+class Events:
+  def __init__(self, reader):
+    self.hiporeader = reader
+    self._pid = self.hiporeader.getIntNode(u"REC::Particle", u"pid")
+    self._px = self.hiporeader.getFloatNode(u"REC::Particle", u"px")
+    self._py = self.hiporeader.getFloatNode(u"REC::Particle", u"py")
+    self._pz = self.hiporeader.getFloatNode(u"REC::Particle", u"pz")
+  def __len__(self):
+    return self._pid.getLength()
+  def __iter__(self):
+      return self
+  def __next__(self):
+    if self.hiporeader.next():
+      self.loadParts()
+      return True
+    else:
+      return False
+  def next(self):
+    if self.hiporeader.next():
+      self.loadParts()
+      return self
+    else:
+      raise StopIteration
+  def loadParts(self):
+    self.px = []
+    self.py = []
+    self.pz = []
+    self.pid = []
+    for i in range(0, len(self)):
+      self.px.append(self._px[i])
+      self.py.append(self._py[i])
+      self.pz.append(self._pz[i])
+      self.pid.append(self._pid[i])
+    self.px = np.array(self.px)
+    self.py = np.array(self.py)
+    self.pz = np.array(self.pz)
+    self.pid = np.array(self.pid)
