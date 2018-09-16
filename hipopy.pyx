@@ -2,9 +2,17 @@
 from libcpp.vector cimport vector
 from libcpp.string cimport string
 from libcpp cimport bool
+from libc.math cimport sqrt
 import numpy as np
 
 import json
+
+get_id = {'PROTON': 2212, 'NEUTRON': 2112, 'PIP': 211, 'PIM': -211,
+          'PI0': 111, 'KP': 321, 'KM': -321, 'PHOTON': 22, 'ELECTRON': 11}
+
+part_mass = {11: 0.000511, 211: 0.13957, -211: 0.13957, 2212: 0.93827,
+          2112: 0.939565, 321: 0.493667, -321: 0.493667, 22: 0}
+
 
 cdef extern from "hipo/node.h" namespace "hipo":
     cdef cppclass node[T]:
@@ -249,10 +257,31 @@ cdef class hipo_reader:
     py_node.setup(c_node)
     return py_node
 
-class Events:
-  def __init__(self, reader):
+cdef class Particle:
+  cdef int pid
+  cdef double m
+  cdef double px
+  cdef double py
+  cdef double pz
+  cdef double P2
+  cdef double P
+  cdef double E
+  def __cinit__(self, double px, double py, double pz, int pid):
+    self.pid = pid
+    self.m = part_mass.get(self.pid, 0)
+    self.px = px
+    self.py = py
+    self.pz = pz
+    self.P2 = (px**2 + py**2 + pz**2)
+    self.P = sqrt(self.P2)
+    self.E = sqrt(self.P2 + self.m**2)
+  cpdef double mass(self):
+    return self.m
 
+class Events:
+  def __init__(self, hipo_reader reader):
     self.hiporeader = reader
+    self._run = self.hiporeader.getIntNode(u"RUN::config",u"run")
     self._pid = self.hiporeader.getIntNode(u"REC::Particle", u"pid")
     self._px = self.hiporeader.getFloatNode(u"REC::Particle", u"px")
     self._py = self.hiporeader.getFloatNode(u"REC::Particle", u"py")
@@ -262,9 +291,6 @@ class Events:
     self._vz = self.hiporeader.getFloatNode(u"REC::Particle", u"vz")
     self._charge = self.hiporeader.getByteNode(u"REC::Particle", u"charge")
     self._beta = self.hiporeader.getFloatNode(u"REC::Particle", u"beta")
-
-    self._run = self.hiporeader.getIntNode(u"RUN::config",u"run")
-
   def __len__(self):
     return self._pid.getLength()
   def __iter__(self):
@@ -279,7 +305,7 @@ class Events:
     if self._run.getLength() > 0:
       self.run = self._run[0]
     cdef l = len(self)
-    self.pid = np.zeros(l,dtype=np.float)
+    self.pid = np.zeros(l,dtype=np.int)
     self.px = np.zeros(l,dtype=np.float)
     self.py = np.zeros(l,dtype=np.float)
     self.pz = np.zeros(l,dtype=np.float)
@@ -288,7 +314,8 @@ class Events:
     self.vz = np.zeros(l,dtype=np.float)
     self.charge = np.zeros(l,dtype=np.int)
     self.beta = np.zeros(l,dtype=np.float)
-    cdef int i
+    self.particles = [None] * l
+    cdef int i = 0
     for i in range(0, l):
       self.pid[i] = self._pid[i]
       self.px[i] = self._px[i]
@@ -299,3 +326,4 @@ class Events:
       self.vz[i] = self._vz[i]
       self.charge[i] = self._charge[i]
       self.beta[i] = self._beta[i]
+      self.particles[i] = Particle(self.px[i],self.py[i],self.pz[i],self.pid[i])

@@ -13,8 +13,10 @@ start = time.time()
 i = 0
 for event in data:
     i += 1
+    # for part in event.particles:
+    #    print(part.mass())
 
 end = time.time()
-print(end - start)
-print((end - start) / i)
-print(i / (end - start))
+print((end - start), "Sec")
+print(((end - start) / i), "time/event")
+print((i / (end - start)), "Hz")
