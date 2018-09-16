@@ -145,10 +145,10 @@ cdef class hipo_reader:
     self.open(filename)
 
   def __str__(self):
-    return self.getjson()
+    return self.jsonString()
 
   def __repr__(self):
-    return self.getjson()
+    return self.jsonString()
 
   cpdef void open(self, str filename):
     """Open a new hipo file with the hipo::reader"""
@@ -180,8 +180,8 @@ cdef class hipo_reader:
     """Get dictionary string from hipo file [More useful to use getjson]"""
     return self.c_reader.getDictionary()
 
-  cpdef string getjson(self):
-    """Get dictionary as a json object"""
+  def jsonString(self):
+    """Get dictionary as string"""
     hipo_dict = self.c_reader.getDictionary()
     out = []
     out.append("[{\n")
@@ -204,6 +204,10 @@ cdef class hipo_reader:
     out[-1] = "}\n]\n}\n]"
     out = ''.join(out)
     return out
+
+  def getJson(self):
+    """Get dictionary as a json object"""
+    return json.loads(self.jsonString())
 
   def getIntNode(self, str group, str item):
     """Create a hipo::node<int> which is accesible to python"""
@@ -247,6 +251,7 @@ cdef class hipo_reader:
 
 class Events:
   def __init__(self, reader):
+
     self.hiporeader = reader
     self._pid = self.hiporeader.getIntNode(u"REC::Particle", u"pid")
     self._px = self.hiporeader.getFloatNode(u"REC::Particle", u"px")
@@ -257,6 +262,9 @@ class Events:
     self._vz = self.hiporeader.getFloatNode(u"REC::Particle", u"vz")
     self._charge = self.hiporeader.getByteNode(u"REC::Particle", u"charge")
     self._beta = self.hiporeader.getFloatNode(u"REC::Particle", u"beta")
+
+    self._run = self.hiporeader.getIntNode(u"RUN::config",u"run")
+
   def __len__(self):
     return self._pid.getLength()
   def __iter__(self):
@@ -268,6 +276,8 @@ class Events:
     else:
       raise StopIteration
   def loadParts(self):
+    if self._run.getLength() > 0:
+      self.run = self._run[0]
     cdef l = len(self)
     self.pid = np.zeros(l,dtype=np.float)
     self.px = np.zeros(l,dtype=np.float)
