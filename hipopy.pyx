@@ -252,16 +252,15 @@ class Events:
     self._px = self.hiporeader.getFloatNode(u"REC::Particle", u"px")
     self._py = self.hiporeader.getFloatNode(u"REC::Particle", u"py")
     self._pz = self.hiporeader.getFloatNode(u"REC::Particle", u"pz")
+    self._vx = self.hiporeader.getFloatNode(u"REC::Particle", u"vx")
+    self._vy = self.hiporeader.getFloatNode(u"REC::Particle", u"vy")
+    self._vz = self.hiporeader.getFloatNode(u"REC::Particle", u"vz")
+    self._charge = self.hiporeader.getByteNode(u"REC::Particle", u"charge")
+    self._beta = self.hiporeader.getFloatNode(u"REC::Particle", u"beta")
   def __len__(self):
     return self._pid.getLength()
   def __iter__(self):
       return self
-  def __next__(self):
-    if self.hiporeader.next():
-      self.loadParts()
-      return True
-    else:
-      return False
   def next(self):
     if self.hiporeader.next():
       self.loadParts()
@@ -269,16 +268,24 @@ class Events:
     else:
       raise StopIteration
   def loadParts(self):
-    self.px = []
-    self.py = []
-    self.pz = []
-    self.pid = []
-    for i in range(0, len(self)):
-      self.px.append(self._px[i])
-      self.py.append(self._py[i])
-      self.pz.append(self._pz[i])
-      self.pid.append(self._pid[i])
-    self.px = np.array(self.px)
-    self.py = np.array(self.py)
-    self.pz = np.array(self.pz)
-    self.pid = np.array(self.pid)
+    cdef l = len(self)
+    self.pid = np.zeros(l,dtype=np.float)
+    self.px = np.zeros(l,dtype=np.float)
+    self.py = np.zeros(l,dtype=np.float)
+    self.pz = np.zeros(l,dtype=np.float)
+    self.vx = np.zeros(l,dtype=np.float)
+    self.vy = np.zeros(l,dtype=np.float)
+    self.vz = np.zeros(l,dtype=np.float)
+    self.charge = np.zeros(l,dtype=np.int)
+    self.beta = np.zeros(l,dtype=np.float)
+    cdef int i
+    for i in range(0, l):
+      self.pid[i] = self._pid[i]
+      self.px[i] = self._px[i]
+      self.py[i] = self._py[i]
+      self.pz[i] = self._pz[i]
+      self.vx[i] = self._vx[i]
+      self.vy[i] = self._vy[i]
+      self.vz[i] = self._vz[i]
+      self.charge[i] = self._charge[i]
+      self.beta[i] = self._beta[i]
