@@ -9,9 +9,8 @@ import numpy as np
 from hipopy import Events, hipo_reader
 
 file_name = sys.argv[1]
-reader = hipo_reader(unicode(file_name, "utf-8"))
+reader = hipo_reader(file_name)
 data = Events(reader)
-
 start = time.time()
 i = 0
 for event in data:

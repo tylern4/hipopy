@@ -145,10 +145,10 @@ cdef class hipo_reader:
   """Hipo_reader based on hipo::reader class"""
   # Define hipo::reader class
   cdef reader*c_reader
-  def __cinit__(self, str filename):
+  def __cinit__(self, filename):
     """Initialize hipo_reader with a file"""
     self.c_reader = new reader()
-    self.open(filename)
+    self.open(unicode(filename, "utf-8"))
 
   def __str__(self):
     return self.jsonString()
@@ -215,7 +215,7 @@ cdef class hipo_reader:
     """Get dictionary as a json object"""
     return json.loads(self.jsonString())
 
-  def getIntNode(self, str group, str item):
+  cpdef getIntNode(self, str group, str item):
     """Create a hipo::node<int> which is accesible to python"""
     cdef node[int]*c_node
     c_group = str_to_char(group)
@@ -225,7 +225,7 @@ cdef class hipo_reader:
     py_node.setup(c_node)
     return py_node
 
-  def getByteNode(self, str group, str item):
+  cpdef getCharNode(self, str group, str item):
     """Create a hipo::node<char> which is accesible to python"""
     cdef node[char]*c_node
     c_group = str_to_char(group)
@@ -235,7 +235,7 @@ cdef class hipo_reader:
     py_node.setup(c_node)
     return py_node
 
-  def getFloatNode(self, str group, str item):
+  cpdef getFloatNode(self, str group, str item):
     """Create a hipo::node<float> which is accesible to python"""
     cdef node[float]*c_node
     c_group = str_to_char(group)
@@ -245,7 +245,7 @@ cdef class hipo_reader:
     py_node.setup(c_node)
     return py_node
 
-  def getShortNode(self, str group, str item):
+  cpdef getShortNode(self, str group, str item):
     """Create a hipo::node<short> which is accesible to python"""
     cdef node[short]*c_node
     c_group = str_to_char(group)
@@ -331,24 +331,36 @@ cdef class Particle:
   def M(self):
     return self.FourVector.Mag
 
-class Events(object):
-  def __init__(self, hipo_reader reader):
+cdef class Events:
+  cdef hipo_reader hiporeader
+  cdef int_node _run, _pid
+  cdef char_node _charge
+  cdef float_node _px,_py,_pz,_vx,_vy,_vz,_beta
+  cdef int run
+  cdef public list particles
+  def __cinit__(self, hipo_reader reader):
     self.hiporeader = reader
-    self._run = self.hiporeader.getIntNode(u"RUN::config",u"run")
-    self._pid = self.hiporeader.getIntNode(u"REC::Particle", u"pid")
-    self._px = self.hiporeader.getFloatNode(u"REC::Particle", u"px")
-    self._py = self.hiporeader.getFloatNode(u"REC::Particle", u"py")
-    self._pz = self.hiporeader.getFloatNode(u"REC::Particle", u"pz")
-    self._vx = self.hiporeader.getFloatNode(u"REC::Particle", u"vx")
-    self._vy = self.hiporeader.getFloatNode(u"REC::Particle", u"vy")
-    self._vz = self.hiporeader.getFloatNode(u"REC::Particle", u"vz")
-    self._charge = self.hiporeader.getByteNode(u"REC::Particle", u"charge")
-    self._beta = self.hiporeader.getFloatNode(u"REC::Particle", u"beta")
+    self._run = self.hiporeader.getIntNode("RUN::config","run")
+    self._pid = self.hiporeader.getIntNode("REC::Particle", "pid")
+    self._px = self.hiporeader.getFloatNode("REC::Particle", "px")
+    self._py = self.hiporeader.getFloatNode("REC::Particle", "py")
+    self._pz = self.hiporeader.getFloatNode("REC::Particle", "pz")
+    self._vx = self.hiporeader.getFloatNode("REC::Particle", "vx")
+    self._vy = self.hiporeader.getFloatNode("REC::Particle", "vy")
+    self._vz = self.hiporeader.getFloatNode("REC::Particle", "vz")
+    self._charge = self.hiporeader.getCharNode("REC::Particle", "charge")
+    self._beta = self.hiporeader.getFloatNode("REC::Particle", "beta")
   def __len__(self):
     return self._pid.getLength()
   def __iter__(self):
       return self
   def next(self):
+    if self.hiporeader.next():
+      self.loadParts()
+      return self
+    else:
+      raise StopIteration
+  def __next__(self):
     if self.hiporeader.next():
       self.loadParts()
       return self

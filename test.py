@@ -1,12 +1,14 @@
 #!/usr/bin/env python
 from __future__ import print_function
-from hipopy import hipo_reader
+
 import sys
+
 import numpy as np
 
+from hipopy import hipo_reader
 
 file_name = sys.argv[1]
-reader = hipo_reader(unicode(file_name, "utf-8"))
+reader = hipo_reader(file_name)
 
 rec_part_pid = reader.getIntNode(u"REC::Particle", u"pid")
 rec_part_px = reader.getFloatNode(u"REC::Particle", u"px")
@@ -15,7 +17,7 @@ rec_part_pz = reader.getFloatNode(u"REC::Particle", u"pz")
 rec_part_vx = reader.getFloatNode(u"REC::Particle", u"vx")
 rec_part_vy = reader.getFloatNode(u"REC::Particle", u"vy")
 rec_part_vz = reader.getFloatNode(u"REC::Particle", u"vz")
-rec_part_charge = reader.getByteNode(u"REC::Particle", u"charge")
+rec_part_charge = reader.getCharNode(u"REC::Particle", u"charge")
 rec_part_beta = reader.getFloatNode(u"REC::Particle", u"beta")
 
 px_hipo = []
