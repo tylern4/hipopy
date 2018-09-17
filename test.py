@@ -10,30 +10,10 @@ from hipopy import hipo_reader
 file_name = sys.argv[1]
 reader = hipo_reader(file_name)
 
-rec_part_pid = reader.getIntNode(u"REC::Particle", u"pid")
-rec_part_px = reader.getFloatNode(u"REC::Particle", u"px")
-rec_part_py = reader.getFloatNode(u"REC::Particle", u"py")
-rec_part_pz = reader.getFloatNode(u"REC::Particle", u"pz")
-rec_part_vx = reader.getFloatNode(u"REC::Particle", u"vx")
-rec_part_vy = reader.getFloatNode(u"REC::Particle", u"vy")
-rec_part_vz = reader.getFloatNode(u"REC::Particle", u"vz")
-rec_part_charge = reader.getCharNode(u"REC::Particle", u"charge")
-rec_part_beta = reader.getFloatNode(u"REC::Particle", u"beta")
+rec_part_pid = reader.getIntNode("REC::Particle", "pid")
+raw_scaler_helicity = reader.getInt8Node("RAW::scaler", "helicity")
 
-px_hipo = []
+
 num = 0
-while(reader.next() and num < 20):
-    num += 1
-    print("Event:")
-    for i in range(0, rec_part_pid.getLength()):
-        px_hipo.append(rec_part_px[i])
-        print("pid\t" + str(rec_part_pid[i]))
-        print("px\t" + str(rec_part_px[i]))
-        print("py\t" + str(rec_part_py[i]))
-        print("pz\t" + str(rec_part_pz[i]))
-        print("vx\t" + str(rec_part_vx[i]))
-        print("vy\t" + str(rec_part_vy[i]))
-        print("vz\t" + str(rec_part_vz[i]))
-        print("q\t" + str(rec_part_charge[i]))
-        print("b\t" + str(rec_part_beta[i]))
-    print()
+while(reader.next() and num < 2):
+    raw_scaler_helicity.show()

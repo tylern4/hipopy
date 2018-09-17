@@ -6,11 +6,11 @@ import time
 
 import numpy as np
 
-from hipopy import Events, hipo_reader
+from hipopy import Event, hipo_reader
 
 file_name = sys.argv[1]
 reader = hipo_reader(file_name)
-data = Events(reader)
+data = Event(reader)
 start = time.time()
 i = 0
 for event in data:

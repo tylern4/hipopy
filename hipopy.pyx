@@ -2,8 +2,10 @@
 from libcpp.vector cimport vector
 from libcpp.string cimport string
 from libcpp cimport bool
+from libc cimport stdint
 import numpy as np
 from libc.math cimport sqrt, log, atan2
+
 get_id = {'PROTON': 2212, 'NEUTRON': 2112, 'PIP': 211, 'PIM': -211,
           'PI0': 111, 'KP': 321, 'KM': -321, 'PHOTON': 22, 'ELECTRON': 11}
 
@@ -37,14 +39,6 @@ cdef extern from "hipo/reader.h" namespace "hipo":
       void  showInfo()
       node *getBranch[T](char*,char*)
 
-
-cdef char* str_to_char(str name):
-  """Convert python string to char*"""
-  cdef bytes name_bytes = name.encode()
-  cdef char* c_name = name_bytes
-  return c_name
-
-
 cdef class int_node:
   cdef node[int]*c_node
 
@@ -57,7 +51,7 @@ cdef class int_node:
   def __len__(self):
     return self.c_node.getLength()
 
-  def __str__(self):
+  def show(self):
     self.c_node.show()
 
   cdef setup(self, node[int]* node):
@@ -82,7 +76,7 @@ cdef class char_node:
   def __len__(self):
     return self.c_node.getLength()
 
-  def __str__(self):
+  def show(self):
     self.c_node.show()
 
   cdef setup(self, node[char]* node):
@@ -106,7 +100,7 @@ cdef class float_node:
   def __len__(self):
     return self.c_node.getLength()
 
-  def __str__(self):
+  def show(self):
     self.c_node.show()
 
   cdef setup(self, node[float]* node):
@@ -129,7 +123,7 @@ cdef class short_node:
   def __len__(self):
     return self.c_node.getLength()
 
-  def __str__(self):
+  def show(self):
     self.c_node.show()
 
   cdef setup(self, node[short]* node):
@@ -148,7 +142,7 @@ cdef class hipo_reader:
   def __cinit__(self, filename):
     """Initialize hipo_reader with a file"""
     self.c_reader = new reader()
-    self.open(unicode(filename, "utf-8"))
+    self.open(filename)
 
   def __str__(self):
     return self.jsonString()
@@ -156,7 +150,7 @@ cdef class hipo_reader:
   def __repr__(self):
     return self.jsonString()
 
-  cdef void open(self, str filename):
+  cdef void open(self, filename):
     """Open a new hipo file with the hipo::reader"""
     cdef bytes filename_bytes = filename.encode()
     cdef char* c_filename = filename_bytes
@@ -215,49 +209,41 @@ cdef class hipo_reader:
     """Get dictionary as a json object"""
     return json.loads(self.jsonString())
 
-  cpdef getIntNode(self, str group, str item):
+  cpdef getIntNode(self, group, item):
     """Create a hipo::node<int> which is accesible to python"""
     cdef node[int]*c_node
-    c_group = str_to_char(group)
-    c_item = str_to_char(item)
-    c_node = self.c_reader.getBranch[int](c_group,c_item)
+    c_node = self.c_reader.getBranch[int](group, item)
     py_node = int_node()
     py_node.setup(c_node)
     return py_node
 
-  cpdef getCharNode(self, str group, str item):
+  cpdef getCharNode(self, group, item):
     """Create a hipo::node<char> which is accesible to python"""
     cdef node[char]*c_node
-    c_group = str_to_char(group)
-    c_item = str_to_char(item)
-    c_node = self.c_reader.getBranch[char](c_group,c_item)
+    c_node = self.c_reader.getBranch[char](group, item)
     py_node = char_node()
     py_node.setup(c_node)
     return py_node
 
-  cpdef getFloatNode(self, str group, str item):
+  cpdef getFloatNode(self, group, item):
     """Create a hipo::node<float> which is accesible to python"""
     cdef node[float]*c_node
-    c_group = str_to_char(group)
-    c_item = str_to_char(item)
-    c_node = self.c_reader.getBranch[float](c_group,c_item)
+    c_node = self.c_reader.getBranch[float](group, item)
     py_node = float_node()
     py_node.setup(c_node)
     return py_node
 
-  cpdef getShortNode(self, str group, str item):
+  cpdef getShortNode(self, group, item):
     """Create a hipo::node<short> which is accesible to python"""
     cdef node[short]*c_node
-    c_group = str_to_char(group)
-    c_item = str_to_char(item)
-    c_node = self.c_reader.getBranch[short](c_group,c_item)
+    c_node = self.c_reader.getBranch[short](group, item)
     py_node = short_node()
     py_node.setup(c_node)
     return py_node
 
 cdef class LorentzVector:
   cdef public double px, py, pz, mass, P2, P, energy
-  def __cinit__(self, double px, double py, double pz, double mass):
+  def __cinit__(LorentzVector self, double px, double py, double pz, double mass):
     self.px = px
     self.py = py
     self.pz = pz
@@ -265,7 +251,7 @@ cdef class LorentzVector:
     self.P2 = (px**2 + py**2 + pz**2)
     self.P = sqrt(self.P2)
     self.energy = sqrt(self.P2 + self.mass**2)
-  def __add__(self,other):
+  def __add__(LorentzVector self, LorentzVector other):
     return LorentzVector(self.px + other.px, self.py + other.py,
                           self.pz + other.pz, self.energy + other.energy)
   def __str__(self):
@@ -273,30 +259,30 @@ cdef class LorentzVector:
   def __repr__(self):
     return self.__str__()
   @property
-  def Mag2(self):
+  def Mag2(LorentzVector self):
     return self.energy**2 - self.P2
   @property
-  def M2(self):
+  def M2(LorentzVector self):
     return self.Mag2
   @property
-  def Mag(self):
+  def Mag(LorentzVector self):
     if self.Mag2 < 0.0:
       return -sqrt(-self.Mag2)
     else:
       return sqrt(self.Mag2)
   @property
-  def M(self):
+  def M(LorentzVector self):
     return self.Mag
 
 cdef class ThreeVector:
   cdef public double vx, vy, vz, L2, L
-  def __cinit__(self, double vx, double vy, double vz):
+  def __cinit__(ThreeVector self, double vx, double vy, double vz):
     self.vx = vx
     self.vy = vy
     self.vz = vz
     self.L2 = (vx**2 + vy**2 + vz**2)
     self.L = sqrt(self.L2)
-  def __add__(self,other):
+  def __add__(ThreeVector self, ThreeVector other):
     return ThreeVector(self.vx + other.vx, self.vy + other.vy, self.vz + other.vz)
 
 
@@ -305,40 +291,40 @@ cdef class Particle:
   cdef public double mass, vx, vy, vz, beta
   cdef public LorentzVector FourVector
   cdef public ThreeVector Vertex
-  def __cinit__(self, double px, double py, double pz, int pid, double vx, double vy, double vz, int charge, double beta):
+  def __cinit__(Particle self, double px, double py, double pz, int pid, double vx, double vy, double vz, int charge, double beta):
     self.pid = pid
     self.charge = charge
     self.Vertex = ThreeVector(vx, vy, vz)
     self.beta = beta
     self.mass = part_mass.get(self.pid, 0)
     self.FourVector = LorentzVector(px, py, pz, self.mass)
-  def __add__(self, other):
+  def __add__(Particle self, Particle other):
     return self.FourVector + other.FourVector
-  def __str__(self):
+  def __str__(Particle self):
     return "pid {:5d} | ".format(self.pid) + self.FourVector.__str__()
-  def __repr__(self):
+  def __repr__(Particle self):
     return self.__str__()
   @property
-  def Mag2(self):
+  def Mag2(Particle self):
     return self.FourVector.Mag2
   @property
-  def M2(self):
+  def M2(Particle self):
     return self.FourVector.Mag2
   @property
-  def Mag(self):
+  def Mag(Particle self):
     return self.FourVector.Mag
   @property
-  def M(self):
+  def M(Particle self):
     return self.FourVector.Mag
 
-cdef class Events:
+cdef class Event:
   cdef hipo_reader hiporeader
   cdef int_node _run, _pid
   cdef char_node _charge
   cdef float_node _px,_py,_pz,_vx,_vy,_vz,_beta
   cdef int run
   cdef public list particles
-  def __cinit__(self, hipo_reader reader):
+  def __cinit__(Event self, hipo_reader reader):
     self.hiporeader = reader
     self._run = self.hiporeader.getIntNode("RUN::config","run")
     self._pid = self.hiporeader.getIntNode("REC::Particle", "pid")
@@ -350,23 +336,23 @@ cdef class Events:
     self._vz = self.hiporeader.getFloatNode("REC::Particle", "vz")
     self._charge = self.hiporeader.getCharNode("REC::Particle", "charge")
     self._beta = self.hiporeader.getFloatNode("REC::Particle", "beta")
-  def __len__(self):
+  def __len__(Event self):
     return self._pid.getLength()
-  def __iter__(self):
+  def __iter__(Event self):
       return self
-  def next(self):
+  def next(Event self):
     if self.hiporeader.next():
       self.loadParts()
       return self
     else:
       raise StopIteration
-  def __next__(self):
+  def __next__(Event self):
     if self.hiporeader.next():
       self.loadParts()
       return self
     else:
       raise StopIteration
-  def loadParts(self):
+  def loadParts(Event self):
     if self._run.getLength() > 0:
       self.run = self._run[0]
     cdef int l = len(self)
