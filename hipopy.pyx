@@ -2,7 +2,6 @@
 from libcpp.vector cimport vector
 from libcpp.string cimport string
 from libcpp cimport bool
-from libc cimport stdint
 import numpy as np
 from libc.math cimport sqrt, log, atan2
 
@@ -13,6 +12,7 @@ part_mass = {11: 0.000511, 211: 0.13957, -211: 0.13957, 2212: 0.93827,
           2112: 0.939565, 321: 0.493667, -321: 0.493667, 22: 0}
 
 import json
+
 
 cdef extern from "hipo/node.h" namespace "hipo":
     cdef cppclass node[T]:
@@ -135,6 +135,29 @@ cdef class short_node:
   cpdef int getLength(self):
     return self.c_node.getLength()
 
+cdef class long_node:
+  cdef node[long]*c_node
+  def __cinit__(self):
+    self.c_node = new node[long]()
+
+  def __getitem__(self, int x):
+    return self.c_node.getValue(x)
+
+  def __len__(self):
+    return self.c_node.getLength()
+
+  def show(self):
+    self.c_node.show()
+
+  cdef setup(self, node[long]* node):
+    self.c_node = node
+
+  cpdef long getValue(self, int x):
+    return self.c_node.getValue(x)
+
+  cpdef int getLength(self):
+    return self.c_node.getLength()
+
 cdef class hipo_reader:
   """Hipo_reader based on hipo::reader class"""
   # Define hipo::reader class
@@ -208,23 +231,27 @@ cdef class hipo_reader:
   def getJson(self):
     """Get dictionary as a json object"""
     return json.loads(self.jsonString())
-
-  cpdef getIntNode(self, group, item):
+  cpdef int_node getIntNode(self, group, item):
     """Create a hipo::node<int> which is accesible to python"""
     cdef node[int]*c_node
     c_node = self.c_reader.getBranch[int](group, item)
     py_node = int_node()
     py_node.setup(c_node)
     return py_node
-
-  cpdef getCharNode(self, group, item):
-    """Create a hipo::node<char> which is accesible to python"""
+  cpdef long_node getLongNode(self, group, item):
+    """Create a hipo::node<long> which is accesible to python"""
+    cdef node[long]*c_node
+    c_node = self.c_reader.getBranch[long](group, item)
+    py_node = long_node()
+    py_node.setup(c_node)
+    return py_node
+  cpdef char_node getInt8Node(self, group, item):
+    """Create a hipo::node<int8_t> which is accesible to python"""
     cdef node[char]*c_node
     c_node = self.c_reader.getBranch[char](group, item)
     py_node = char_node()
     py_node.setup(c_node)
     return py_node
-
   cpdef getFloatNode(self, group, item):
     """Create a hipo::node<float> which is accesible to python"""
     cdef node[float]*c_node
@@ -232,9 +259,8 @@ cdef class hipo_reader:
     py_node = float_node()
     py_node.setup(c_node)
     return py_node
-
-  cpdef getShortNode(self, group, item):
-    """Create a hipo::node<short> which is accesible to python"""
+  cpdef short_node getInt16Node(self, group, item):
+    """Create a hipo::node<int16_t> which is accesible to python"""
     cdef node[short]*c_node
     c_node = self.c_reader.getBranch[short](group, item)
     py_node = short_node()
@@ -334,7 +360,7 @@ cdef class Event:
     self._vx = self.hiporeader.getFloatNode("REC::Particle", "vx")
     self._vy = self.hiporeader.getFloatNode("REC::Particle", "vy")
     self._vz = self.hiporeader.getFloatNode("REC::Particle", "vz")
-    self._charge = self.hiporeader.getCharNode("REC::Particle", "charge")
+    self._charge = self.hiporeader.getInt8Node("REC::Particle", "charge")
     self._beta = self.hiporeader.getFloatNode("REC::Particle", "beta")
   def __len__(Event self):
     return self._pid.getLength()
