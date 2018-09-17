@@ -9,19 +9,6 @@ matrix:
       script:
         - docker build -t hipopy . -f docker/Dockerfile.py2
         - docker images -a
-    - os: linux
-      sudo: true
-      language: cpp
-      before_install:
-        - sudo apt-get install -y liblz4-dev cython
-      addons:
-        apt:
-          update: true
-      script:
-        - mkdir build
-        - cd build
-        - cmake ..
-        - make -j$(nproc)
     - os: osx
       language: cpp
       cache:
