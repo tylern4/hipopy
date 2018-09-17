@@ -2,17 +2,15 @@
 from libcpp.vector cimport vector
 from libcpp.string cimport string
 from libcpp cimport bool
-from libc.math cimport sqrt
 import numpy as np
-
-import json
-
+from libc.math cimport sqrt, log, atan2
 get_id = {'PROTON': 2212, 'NEUTRON': 2112, 'PIP': 211, 'PIM': -211,
           'PI0': 111, 'KP': 321, 'KM': -321, 'PHOTON': 22, 'ELECTRON': 11}
 
 part_mass = {11: 0.000511, 211: 0.13957, -211: 0.13957, 2212: 0.93827,
           2112: 0.939565, 321: 0.493667, -321: 0.493667, 22: 0}
 
+import json
 
 cdef extern from "hipo/node.h" namespace "hipo":
     cdef cppclass node[T]:
@@ -40,7 +38,7 @@ cdef extern from "hipo/reader.h" namespace "hipo":
       node *getBranch[T](char*,char*)
 
 
-cpdef char* str_to_char(str name):
+cdef char* str_to_char(str name):
   """Convert python string to char*"""
   cdef bytes name_bytes = name.encode()
   cdef char* c_name = name_bytes
@@ -53,8 +51,8 @@ cdef class int_node:
   def __cinit__(self):
     self.c_node = new node[int]()
 
-  def __getitem__(self, arg):
-    return self.c_node.getValue(arg)
+  def __getitem__(self, int x):
+    return self.c_node.getValue(x)
 
   def __len__(self):
     return self.c_node.getLength()
@@ -65,7 +63,7 @@ cdef class int_node:
   cdef setup(self, node[int]* node):
     self.c_node = node
 
-  cpdef int getValue(self, x):
+  cpdef int getValue(self, int x):
     return self.c_node.getValue(x)
 
   cpdef int getLength(self):
@@ -78,8 +76,8 @@ cdef class char_node:
   def __cinit__(self):
     self.c_node = new node[char]()
 
-  def __getitem__(self, arg):
-    return self.c_node.getValue(arg)
+  def __getitem__(self, int x):
+    return self.c_node.getValue(x)
 
   def __len__(self):
     return self.c_node.getLength()
@@ -90,7 +88,7 @@ cdef class char_node:
   cdef setup(self, node[char]* node):
     self.c_node = node
 
-  cpdef char getValue(self, x):
+  cpdef char getValue(self, int x):
     return self.c_node.getValue(x)
 
   cpdef int getLength(self):
@@ -102,8 +100,8 @@ cdef class float_node:
   def __cinit__(self):
     self.c_node = new node[float]()
 
-  def __getitem__(self, arg):
-    return self.c_node.getValue(arg)
+  def __getitem__(self, int x):
+    return self.c_node.getValue(x)
 
   def __len__(self):
     return self.c_node.getLength()
@@ -114,7 +112,7 @@ cdef class float_node:
   cdef setup(self, node[float]* node):
     self.c_node = node
 
-  cpdef float getValue(self, x):
+  cpdef float getValue(self, int x):
     return self.c_node.getValue(x)
 
   cpdef int getLength(self):
@@ -125,8 +123,8 @@ cdef class short_node:
   def __cinit__(self):
     self.c_node = new node[short]()
 
-  def __getitem__(self, arg):
-    return self.c_node.getValue(arg)
+  def __getitem__(self, int x):
+    return self.c_node.getValue(x)
 
   def __len__(self):
     return self.c_node.getLength()
@@ -137,7 +135,7 @@ cdef class short_node:
   cdef setup(self, node[short]* node):
     self.c_node = node
 
-  cpdef short getValue(self, x):
+  cpdef short getValue(self, int x):
     return self.c_node.getValue(x)
 
   cpdef int getLength(self):
@@ -158,7 +156,7 @@ cdef class hipo_reader:
   def __repr__(self):
     return self.jsonString()
 
-  cpdef void open(self, str filename):
+  cdef void open(self, str filename):
     """Open a new hipo file with the hipo::reader"""
     cdef bytes filename_bytes = filename.encode()
     cdef char* c_filename = filename_bytes
@@ -257,28 +255,83 @@ cdef class hipo_reader:
     py_node.setup(c_node)
     return py_node
 
-cdef class Particle:
-  cdef int pid
-  cdef double m
-  cdef double px
-  cdef double py
-  cdef double pz
-  cdef double P2
-  cdef double P
-  cdef double E
-  def __cinit__(self, double px, double py, double pz, int pid):
-    self.pid = pid
-    self.m = part_mass.get(self.pid, 0)
+cdef class LorentzVector:
+  cdef public double px, py, pz, mass, P2, P, energy
+  def __cinit__(self, double px, double py, double pz, double mass):
     self.px = px
     self.py = py
     self.pz = pz
+    self.mass = mass
     self.P2 = (px**2 + py**2 + pz**2)
     self.P = sqrt(self.P2)
-    self.E = sqrt(self.P2 + self.m**2)
-  cpdef double mass(self):
-    return self.m
+    self.energy = sqrt(self.P2 + self.mass**2)
+  def __add__(self,other):
+    return LorentzVector(self.px + other.px, self.py + other.py,
+                          self.pz + other.pz, self.energy + other.energy)
+  def __str__(self):
+    return "Px {0: 0.2f} | Py {1: 0.2f} | Pz {2: 0.2f} | E {3: 0.2f}".format(self.px,self.py ,self.pz, self.energy)
+  def __repr__(self):
+    return self.__str__()
+  @property
+  def Mag2(self):
+    return self.energy**2 - self.P2
+  @property
+  def M2(self):
+    return self.Mag2
+  @property
+  def Mag(self):
+    if self.Mag2 < 0.0:
+      return -sqrt(-self.Mag2)
+    else:
+      return sqrt(self.Mag2)
+  @property
+  def M(self):
+    return self.Mag
 
-class Events:
+cdef class ThreeVector:
+  cdef public double vx, vy, vz, L2, L
+  def __cinit__(self, double vx, double vy, double vz):
+    self.vx = vx
+    self.vy = vy
+    self.vz = vz
+    self.L2 = (vx**2 + vy**2 + vz**2)
+    self.L = sqrt(self.L2)
+  def __add__(self,other):
+    return ThreeVector(self.vx + other.vx, self.vy + other.vy, self.vz + other.vz)
+
+
+cdef class Particle:
+  cdef public int pid, charge
+  cdef public double mass, vx, vy, vz, beta
+  cdef public LorentzVector FourVector
+  cdef public ThreeVector Vertex
+  def __cinit__(self, double px, double py, double pz, int pid, double vx, double vy, double vz, int charge, double beta):
+    self.pid = pid
+    self.charge = charge
+    self.Vertex = ThreeVector(vx, vy, vz)
+    self.beta = beta
+    self.mass = part_mass.get(self.pid, 0)
+    self.FourVector = LorentzVector(px, py, pz, self.mass)
+  def __add__(self, other):
+    return self.FourVector + other.FourVector
+  def __str__(self):
+    return "pid {:5d} | ".format(self.pid) + self.FourVector.__str__()
+  def __repr__(self):
+    return self.__str__()
+  @property
+  def Mag2(self):
+    return self.FourVector.Mag2
+  @property
+  def M2(self):
+    return self.FourVector.Mag2
+  @property
+  def Mag(self):
+    return self.FourVector.Mag
+  @property
+  def M(self):
+    return self.FourVector.Mag
+
+class Events(object):
   def __init__(self, hipo_reader reader):
     self.hiporeader = reader
     self._run = self.hiporeader.getIntNode(u"RUN::config",u"run")
@@ -304,26 +357,9 @@ class Events:
   def loadParts(self):
     if self._run.getLength() > 0:
       self.run = self._run[0]
-    cdef l = len(self)
-    self.pid = np.zeros(l,dtype=np.int)
-    self.px = np.zeros(l,dtype=np.float)
-    self.py = np.zeros(l,dtype=np.float)
-    self.pz = np.zeros(l,dtype=np.float)
-    self.vx = np.zeros(l,dtype=np.float)
-    self.vy = np.zeros(l,dtype=np.float)
-    self.vz = np.zeros(l,dtype=np.float)
-    self.charge = np.zeros(l,dtype=np.int)
-    self.beta = np.zeros(l,dtype=np.float)
-    self.particles = [None] * l
+    cdef int l = len(self)
     cdef int i = 0
+    self.particles = [None] * l
     for i in range(0, l):
-      self.pid[i] = self._pid[i]
-      self.px[i] = self._px[i]
-      self.py[i] = self._py[i]
-      self.pz[i] = self._pz[i]
-      self.vx[i] = self._vx[i]
-      self.vy[i] = self._vy[i]
-      self.vz[i] = self._vz[i]
-      self.charge[i] = self._charge[i]
-      self.beta[i] = self._beta[i]
-      self.particles[i] = Particle(self.px[i],self.py[i],self.pz[i],self.pid[i])
+      self.particles[i] = Particle(self._px[i], self._py[i], self._pz[i], self._pid[i],
+                          self._vx[i], self._vy[i], self._vz[i], self._charge[i], self._beta[i])
