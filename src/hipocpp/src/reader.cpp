@@ -53,7 +53,7 @@ void reader::open(const char *filename) {
   inputStreamSize = inputStream.tellg();
   inputStream.seekg(0, std::ios_base::beg);
   if (inputStream.is_open() == false) {
-    std::cerr << "[ERROR] something went wrong with openning file : %s\n" << filename << std::endl;
+    std::cerr << "[ERROR] something went wrong with openning file : " << filename << std::endl;
     return;
   }
   readHeader();
