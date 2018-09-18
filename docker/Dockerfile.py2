@@ -3,7 +3,7 @@ FROM alpine:3.8
 RUN apk add --no-cache make g++ gcc cmake lz4-dev python2-dev && \
     python -m ensurepip && \
     rm -r /usr/lib/python*/ensurepip && \
-    pip install --upgrade pip setuptools numpy cython && \
+    pip install --upgrade pip setuptools ipython numpy cython && \
     rm -r /root/.cache
 
 COPY . /usr/source/hipopy
