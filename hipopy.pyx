@@ -39,6 +39,12 @@ cdef extern from "hipo/reader.h" namespace "hipo":
       void  showInfo()
       node *getBranch[T](char*,char*)
 
+cdef char* str_to_char(str name):
+  """Convert python string to char*"""
+  cdef bytes name_bytes = name.encode()
+  cdef char* c_name = name_bytes
+  return c_name
+
 cdef class int_node:
   cdef node[int]*c_node
 
@@ -234,35 +240,35 @@ cdef class hipo_reader:
   cpdef int_node getIntNode(self, group, item):
     """Create a hipo::node<int> which is accesible to python"""
     cdef node[int]*c_node
-    c_node = self.c_reader.getBranch[int](group, item)
+    c_node = self.c_reader.getBranch[int](str_to_char(group), str_to_char(item))
     py_node = int_node()
     py_node.setup(c_node)
     return py_node
   cpdef long_node getLongNode(self, group, item):
     """Create a hipo::node<long> which is accesible to python"""
     cdef node[long]*c_node
-    c_node = self.c_reader.getBranch[long](group, item)
+    c_node = self.c_reader.getBranch[long](str_to_char(group), str_to_char(item))
     py_node = long_node()
     py_node.setup(c_node)
     return py_node
   cpdef char_node getInt8Node(self, group, item):
     """Create a hipo::node<int8_t> which is accesible to python"""
     cdef node[char]*c_node
-    c_node = self.c_reader.getBranch[char](group, item)
+    c_node = self.c_reader.getBranch[char](str_to_char(group), str_to_char(item))
     py_node = char_node()
     py_node.setup(c_node)
     return py_node
   cpdef getFloatNode(self, group, item):
     """Create a hipo::node<float> which is accesible to python"""
     cdef node[float]*c_node
-    c_node = self.c_reader.getBranch[float](group, item)
+    c_node = self.c_reader.getBranch[float](str_to_char(group), str_to_char(item))
     py_node = float_node()
     py_node.setup(c_node)
     return py_node
   cpdef short_node getInt16Node(self, group, item):
     """Create a hipo::node<int16_t> which is accesible to python"""
     cdef node[short]*c_node
-    c_node = self.c_reader.getBranch[short](group, item)
+    c_node = self.c_reader.getBranch[short](str_to_char(group), str_to_char(item))
     py_node = short_node()
     py_node.setup(c_node)
     return py_node
