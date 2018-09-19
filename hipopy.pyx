@@ -1,18 +1,18 @@
+# cython: profile=True
 # distutils: language = c++
 from libcpp.vector cimport vector
 from libcpp.string cimport string
+from libc.math cimport isnan
 from libcpp cimport bool
 import numpy as np
 from libc.math cimport sqrt, log, atan2
-
-get_id = {'PROTON': 2212, 'NEUTRON': 2112, 'PIP': 211, 'PIM': -211,
-          'PI0': 111, 'KP': 321, 'KM': -321, 'PHOTON': 22, 'ELECTRON': 11}
-
-part_mass = {11: 0.000511, 211: 0.13957, -211: 0.13957, 2212: 0.93827,
-          2112: 0.939565, 321: 0.493667, -321: 0.493667, 22: 0}
-
 import json
 
+cdef dict get_id = {'PROTON': 2212, 'NEUTRON': 2112, 'PIP': 211, 'PIM': -211,
+          'PI0': 111, 'KP': 321, 'KM': -321, 'PHOTON': 22, 'ELECTRON': 11}
+
+cdef dict part_mass = {11: 0.000511, 211: 0.13957, -211: 0.13957, 2212: 0.93827,
+          2112: 0.939565, 321: 0.493667, -321: 0.493667, 22: 0}
 
 cdef extern from "hipo/node.h" namespace "hipo":
     cdef cppclass node[T]:
@@ -38,6 +38,41 @@ cdef extern from "hipo/reader.h" namespace "hipo":
       bool  isOpen()
       void  showInfo()
       node *getBranch[T](char*,char*)
+
+cdef extern from "TLorentzVector.h":
+  cdef cppclass TLorentzVector:
+    TLorentzVector() except +
+    TLorentzVector(double x, double y, double z, double t) except +
+    void Boost(double, double, double)
+    void SetXYZM(double x, double y, double z, double m)
+    double Px()
+    double Py()
+    double Pz()
+    double P()
+    double E()
+    double Energy()
+    double Theta()
+    double CosTheta()
+    double Phi()
+    double Rho()
+    double Perp2()
+    double Pt()
+    double Perp()
+    double Et2()
+    double Et()
+    double Mag2()
+    double M2()
+    double Mag()
+    double M()
+    double Mt2()
+    double Mt()
+    double Beta()
+    double Gamma()
+    double Plus()
+    double Minus()
+    double Rapidity()
+    double Eta()
+    double PseudoRapidity()
 
 cdef char* str_to_char(str name):
   """Convert python string to char*"""
@@ -237,74 +272,189 @@ cdef class hipo_reader:
   def getJson(self):
     """Get dictionary as a json object"""
     return json.loads(self.jsonString())
+
   cpdef int_node getIntNode(self, group, item):
     """Create a hipo::node<int> which is accesible to python"""
     cdef node[int]*c_node
-    c_node = self.c_reader.getBranch[int](str_to_char(group), str_to_char(item))
+    group = str_to_char(group)
+    item = str_to_char(item)
+    c_node = self.c_reader.getBranch[int](group, item)
     py_node = int_node()
     py_node.setup(c_node)
     return py_node
+
   cpdef long_node getLongNode(self, group, item):
     """Create a hipo::node<long> which is accesible to python"""
     cdef node[long]*c_node
-    c_node = self.c_reader.getBranch[long](str_to_char(group), str_to_char(item))
+    group = str_to_char(group)
+    item = str_to_char(item)
+    c_node = self.c_reader.getBranch[long](group, item)
     py_node = long_node()
     py_node.setup(c_node)
     return py_node
+
   cpdef char_node getInt8Node(self, group, item):
     """Create a hipo::node<int8_t> which is accesible to python"""
     cdef node[char]*c_node
-    c_node = self.c_reader.getBranch[char](str_to_char(group), str_to_char(item))
+    group = str_to_char(group)
+    item = str_to_char(item)
+    c_node = self.c_reader.getBranch[char](group, item)
     py_node = char_node()
     py_node.setup(c_node)
     return py_node
+
   cpdef getFloatNode(self, group, item):
     """Create a hipo::node<float> which is accesible to python"""
     cdef node[float]*c_node
-    c_node = self.c_reader.getBranch[float](str_to_char(group), str_to_char(item))
+    group = str_to_char(group)
+    item = str_to_char(item)
+    c_node = self.c_reader.getBranch[float](group, item)
     py_node = float_node()
     py_node.setup(c_node)
     return py_node
+
   cpdef short_node getInt16Node(self, group, item):
     """Create a hipo::node<int16_t> which is accesible to python"""
     cdef node[short]*c_node
-    c_node = self.c_reader.getBranch[short](str_to_char(group), str_to_char(item))
+    group = str_to_char(group)
+    item = str_to_char(item)
+    c_node = self.c_reader.getBranch[short](group, item)
     py_node = short_node()
     py_node.setup(c_node)
     return py_node
 
 cdef class LorentzVector:
-  cdef public double px, py, pz, mass, P2, P, energy
-  def __cinit__(LorentzVector self, double px, double py, double pz, double mass):
+  cdef TLorentzVector*c_TLorentzVector
+  cdef public double px, py, pz, mass, energy
+  def __cinit__(LorentzVector self, double px, double py, double pz, **kwargs):
     self.px = px
     self.py = py
     self.pz = pz
-    self.mass = mass
-    self.P2 = (px**2 + py**2 + pz**2)
-    self.P = sqrt(self.P2)
-    self.energy = sqrt(self.P2 + self.mass**2)
+    if "energy" in kwargs:
+      self.c_TLorentzVector = new TLorentzVector(px, py, pz, kwargs["energy"])
+      self.energy = kwargs["energy"]
+      self.mass = self.c_TLorentzVector.M()
+    elif "mass" in kwargs:
+      self.c_TLorentzVector = new TLorentzVector()
+      self.c_TLorentzVector.SetXYZM(px, py, pz, kwargs["mass"])
+      self.mass = kwargs["mass"]
+      self.energy = self.c_TLorentzVector.E()
+    else:
+      self.mass = 0
+      self.energy = 0
+      self.c_TLorentzVector = new TLorentzVector(px, py, pz, 0)
   def __add__(LorentzVector self, LorentzVector other):
-    return LorentzVector(self.px + other.px, self.py + other.py,
-                          self.pz + other.pz, self.energy + other.energy)
+    cdef double X = self.c_TLorentzVector.Px() + other.c_TLorentzVector.Px()
+    cdef double Y = self.c_TLorentzVector.Py() + other.c_TLorentzVector.Py()
+    cdef double Z = self.c_TLorentzVector.Pz() + other.c_TLorentzVector.Pz()
+    cdef double E = self.c_TLorentzVector.E() + other.c_TLorentzVector.E()
+    return LorentzVector(X, Y, Z, energy=E)
+  def __iadd__(LorentzVector self, LorentzVector other):
+    cdef double X = self.c_TLorentzVector.Px() + other.c_TLorentzVector.Px()
+    cdef double Y = self.c_TLorentzVector.Py() + other.c_TLorentzVector.Py()
+    cdef double Z = self.c_TLorentzVector.Pz() + other.c_TLorentzVector.Pz()
+    cdef double E = self.c_TLorentzVector.E() + other.c_TLorentzVector.E()
+    return LorentzVector(X, Y, Z, energy=E)
+  def __sub__(LorentzVector self, LorentzVector other):
+    cdef double X = self.c_TLorentzVector.Px() - other.c_TLorentzVector.Px()
+    cdef double Y = self.c_TLorentzVector.Py() - other.c_TLorentzVector.Py()
+    cdef double Z = self.c_TLorentzVector.Pz() - other.c_TLorentzVector.Pz()
+    cdef double E = self.c_TLorentzVector.E() - other.c_TLorentzVector.E()
+    return LorentzVector(X, Y, Z, E, energy=E)
+  def __isub__(LorentzVector self, LorentzVector other):
+    cdef double X = self.c_TLorentzVector.Px() - other.c_TLorentzVector.Px()
+    cdef double Y = self.c_TLorentzVector.Py() - other.c_TLorentzVector.Py()
+    cdef double Z = self.c_TLorentzVector.Pz() - other.c_TLorentzVector.Pz()
+    cdef double E = self.c_TLorentzVector.E() - other.c_TLorentzVector.E()
+    return LorentzVector(X, Y, Z, E, energy=E)
   def __str__(self):
     return "Px {0: 0.2f} | Py {1: 0.2f} | Pz {2: 0.2f} | E {3: 0.2f}".format(self.px,self.py ,self.pz, self.energy)
   def __repr__(self):
     return self.__str__()
   @property
+  def Px(LorentzVector self):
+    return self.c_TLorentzVector.Px()
+  @property
+  def Py(LorentzVector self):
+    return self.c_TLorentzVector.Py()
+  @property
+  def Pz(LorentzVector self):
+    return self.c_TLorentzVector.Pz()
+  @property
+  def P(LorentzVector self):
+    return self.c_TLorentzVector.P()
+  @property
+  def E(LorentzVector self):
+    return self.c_TLorentzVector.E()
+  @property
+  def Energy(LorentzVector self):
+    return self.c_TLorentzVector.E()
+  @property
+  def Theta(LorentzVector self):
+    return self.c_TLorentzVector.Theta()
+  @property
+  def CosTheta(LorentzVector self):
+    return self.c_TLorentzVector.CosTheta()
+  @property
+  def Phi(LorentzVector self):
+    return self.c_TLorentzVector.Phi()
+  @property
+  def Rho(LorentzVector self):
+    return self.c_TLorentzVector.Rho()
+  @property
+  def Perp2(LorentzVector self):
+    return self.c_TLorentzVector.Perp2()
+  @property
+  def Pt(LorentzVector self):
+    return self.c_TLorentzVector.Pt()
+  @property
+  def Perp(LorentzVector self):
+    return self.c_TLorentzVector.Perp()
+  @property
+  def Et2(LorentzVector self):
+    return self.c_TLorentzVector.Et2()
+  @property
+  def Et(LorentzVector self):
+    return self.c_TLorentzVector.Et()
+  @property
   def Mag2(LorentzVector self):
-    return self.energy**2 - self.P2
+    return self.c_TLorentzVector.Mag2()
   @property
   def M2(LorentzVector self):
-    return self.Mag2
+    return self.c_TLorentzVector.M2()
   @property
   def Mag(LorentzVector self):
-    if self.Mag2 < 0.0:
-      return -sqrt(-self.Mag2)
-    else:
-      return sqrt(self.Mag2)
+    return self.c_TLorentzVector.Mag()
   @property
   def M(LorentzVector self):
-    return self.Mag
+    return self.c_TLorentzVector.M()
+  @property
+  def Mt2(LorentzVector self):
+    return self.c_TLorentzVector.Mt2()
+  @property
+  def Mt(LorentzVector self):
+    return self.c_TLorentzVector.Mt()
+  @property
+  def Beta(LorentzVector self):
+    return self.c_TLorentzVector.Beta()
+  @property
+  def Gamma(LorentzVector self):
+    return self.c_TLorentzVector.Gamma()
+  @property
+  def Plus(LorentzVector self):
+    return self.c_TLorentzVector.Plus()
+  @property
+  def Minus(LorentzVector self):
+    return self.c_TLorentzVector.Minus()
+  @property
+  def Rapidity(LorentzVector self):
+    return self.c_TLorentzVector.Rapidity()
+  @property
+  def Eta(LorentzVector self):
+    return self.c_TLorentzVector.Eta()
+  @property
+  def PseudoRapidity(LorentzVector self):
+    return self.c_TLorentzVector.PseudoRapidity()
 
 cdef class ThreeVector:
   cdef public double vx, vy, vz, L2, L
@@ -312,11 +462,14 @@ cdef class ThreeVector:
     self.vx = vx
     self.vy = vy
     self.vz = vz
-    self.L2 = (vx**2 + vy**2 + vz**2)
+    self.L2 =(vx**2 + vy**2 + vz**2)
     self.L = sqrt(self.L2)
   def __add__(ThreeVector self, ThreeVector other):
     return ThreeVector(self.vx + other.vx, self.vy + other.vy, self.vz + other.vz)
-
+  def __str__(ThreeVector self):
+    return "Vx {0: 0.2f} | Vy {1: 0.2f} | Vz {2: 0.2f}".format(self.vx,self.vy ,self.vz)
+  def __repr__(self):
+    return self.__str__()
 
 cdef class Particle:
   cdef public int pid, charge
@@ -329,25 +482,99 @@ cdef class Particle:
     self.Vertex = ThreeVector(vx, vy, vz)
     self.beta = beta
     self.mass = part_mass.get(self.pid, 0)
-    self.FourVector = LorentzVector(px, py, pz, self.mass)
+    self.FourVector = LorentzVector(px, py, pz, mass=self.mass)
   def __add__(Particle self, Particle other):
     return self.FourVector + other.FourVector
+  def __sub__(Particle self, Particle other):
+    return self.FourVector - other.FourVector
   def __str__(Particle self):
     return "pid {:5d} | ".format(self.pid) + self.FourVector.__str__()
   def __repr__(Particle self):
     return self.__str__()
   @property
+  def Px(Particle self):
+    return self.FourVector.Px
+  @property
+  def Py(Particle self):
+    return self.FourVector.Py
+  @property
+  def Pz(Particle self):
+    return self.FourVector.Pz
+  @property
+  def P(Particle self):
+    return self.FourVector.P
+  @property
+  def E(Particle self):
+    return self.FourVector.E
+  @property
+  def Energy(Particle self):
+    return self.FourVector.E
+  @property
+  def Theta(Particle self):
+    return self.FourVector.Theta
+  @property
+  def CosTheta(Particle self):
+    return self.FourVector.CosTheta
+  @property
+  def Phi(Particle self):
+    return self.FourVector.Phi
+  @property
+  def Rho(Particle self):
+    return self.FourVector.Rho
+  @property
+  def Perp2(Particle self):
+    return self.FourVector.Perp2
+  @property
+  def Pt(Particle self):
+    return self.FourVector.Pt
+  @property
+  def Perp(Particle self):
+    return self.FourVector.Perp
+  @property
+  def Et2(Particle self):
+    return self.FourVector.Et2
+  @property
+  def Et(Particle self):
+    return self.FourVector.Et
+  @property
   def Mag2(Particle self):
     return self.FourVector.Mag2
   @property
   def M2(Particle self):
-    return self.FourVector.Mag2
+    return self.FourVector.M2
   @property
   def Mag(Particle self):
     return self.FourVector.Mag
   @property
   def M(Particle self):
-    return self.FourVector.Mag
+    return self.FourVector.M
+  @property
+  def Mt2(Particle self):
+    return self.FourVector.Mt2
+  @property
+  def Mt(Particle self):
+    return self.FourVector.Mt
+  @property
+  def Beta(Particle self):
+    return self.FourVector.Beta
+  @property
+  def Gamma(Particle self):
+    return self.FourVector.Gamma
+  @property
+  def Plus(Particle self):
+    return self.FourVector.Plus
+  @property
+  def Minus(Particle self):
+    return self.FourVector.Minus
+  @property
+  def Rapidity(Particle self):
+    return self.FourVector.Rapidity
+  @property
+  def Eta(Particle self):
+    return self.FourVector.Eta
+  @property
+  def PseudoRapidity(Particle self):
+    return self.FourVector.PseudoRapidity
 
 cdef class Event:
   cdef hipo_reader hiporeader
@@ -355,7 +582,7 @@ cdef class Event:
   cdef char_node _charge
   cdef float_node _px,_py,_pz,_vx,_vy,_vz,_beta
   cdef int run
-  cdef public list particles
+  cdef public list particles, ids
   def __cinit__(Event self, hipo_reader reader):
     self.hiporeader = reader
     self._run = self.hiporeader.getIntNode("RUN::config","run")
@@ -390,6 +617,8 @@ cdef class Event:
     cdef int l = len(self)
     cdef int i = 0
     self.particles = [None] * l
+    self.ids = [None] * l
     for i in range(0, l):
+      self.ids[i] = self._pid[i]
       self.particles[i] = Particle(self._px[i], self._py[i], self._pz[i], self._pid[i],
                           self._vx[i], self._vy[i], self._vz[i], self._charge[i], self._beta[i])
