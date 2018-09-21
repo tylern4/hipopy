@@ -26,8 +26,7 @@ data = Event(reader)
 start = time.time()
 i = 0
 for event in data:
-    part = TLorentzVector(event.particles[0].Px, event.particles[0].Py, event.particles[0].Pz, event.particles[0].E)
-    print(event.particles[0].M, part.M(), (event.particles[0].M - part.M()))
+    i += 1
 
 end = time.time()
 print((end - start), "Sec")

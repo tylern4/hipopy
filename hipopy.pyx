@@ -8,11 +8,9 @@ import numpy as np
 from libc.math cimport sqrt, log, atan2
 import json
 
-cdef dict get_id = {'PROTON': 2212, 'NEUTRON': 2112, 'PIP': 211, 'PIM': -211,
-          'PI0': 111, 'KP': 321, 'KM': -321, 'PHOTON': 22, 'ELECTRON': 11}
+cdef dict get_id = {'PROTON': 2212, 'NEUTRON': 2112, 'PIP': 211, 'PIM': -211, 'PI0': 111, 'KP': 321, 'KM': -321, 'PHOTON': 22, 'ELECTRON': 11}
 
-cdef dict part_mass = {11: 0.000511, 211: 0.13957, -211: 0.13957, 2212: 0.93827,
-          2112: 0.939565, 321: 0.493667, -321: 0.493667, 22: 0}
+cdef dict part_mass = {11: 0.000511, 211: 0.13957, -211: 0.13957, 2212: 0.93827, 2112: 0.939565, 321: 0.493667, -321: 0.493667, 22: 0}
 
 cdef extern from "hipo/node.h" namespace "hipo":
     cdef cppclass node[T]:
@@ -74,6 +72,34 @@ cdef extern from "TLorentzVector.h":
     double Eta()
     double PseudoRapidity()
 
+cdef extern from "TVector3.h":
+  cdef cppclass TVector3:
+    TVector3 () except +
+    TVector3 (double x, double y, double z) except +
+    void SetXYZ(double x, double y, double z)
+    double x()
+    double y()
+    double z()
+    double X()
+    double Y()
+    double Z()
+    double Px()
+    double Py()
+    double Pz()
+    double Phi()
+    double Theta()
+    double CosTheta()
+    double Mag2()
+    double Mag()
+    double Perp2()
+    double Pt()
+    double Perp()
+    double Eta ()
+    void RotateX (double x)
+    void RotateY (double x)
+    void RotateZ (double x)
+    void Print()
+
 cdef char* str_to_char(str name):
   """Convert python string to char*"""
   cdef bytes name_bytes = name.encode()
@@ -98,10 +124,10 @@ cdef class int_node:
   cdef setup(self, node[int]* node):
     self.c_node = node
 
-  cpdef int getValue(self, int x):
+  cdef int getValue(self, int x):
     return self.c_node.getValue(x)
 
-  cpdef int getLength(self):
+  cdef int getLength(self):
     return self.c_node.getLength()
 
 
@@ -123,10 +149,10 @@ cdef class char_node:
   cdef setup(self, node[char]* node):
     self.c_node = node
 
-  cpdef char getValue(self, int x):
+  cdef char getValue(self, int x):
     return self.c_node.getValue(x)
 
-  cpdef int getLength(self):
+  cdef int getLength(self):
     return self.c_node.getLength()
 
 
@@ -147,10 +173,10 @@ cdef class float_node:
   cdef setup(self, node[float]* node):
     self.c_node = node
 
-  cpdef float getValue(self, int x):
+  cdef float getValue(self, int x):
     return self.c_node.getValue(x)
 
-  cpdef int getLength(self):
+  cdef int getLength(self):
     return self.c_node.getLength()
 
 cdef class short_node:
@@ -170,10 +196,10 @@ cdef class short_node:
   cdef setup(self, node[short]* node):
     self.c_node = node
 
-  cpdef short getValue(self, int x):
+  cdef short getValue(self, int x):
     return self.c_node.getValue(x)
 
-  cpdef int getLength(self):
+  cdef int getLength(self):
     return self.c_node.getLength()
 
 cdef class long_node:
@@ -193,10 +219,10 @@ cdef class long_node:
   cdef setup(self, node[long]* node):
     self.c_node = node
 
-  cpdef long getValue(self, int x):
+  cdef long getValue(self, int x):
     return self.c_node.getValue(x)
 
-  cpdef int getLength(self):
+  cdef int getLength(self):
     return self.c_node.getLength()
 
 cdef class hipo_reader:
@@ -273,7 +299,7 @@ cdef class hipo_reader:
     """Get dictionary as a json object"""
     return json.loads(self.jsonString())
 
-  cpdef int_node getIntNode(self, group, item):
+  cdef int_node getIntNode(self, group, item):
     """Create a hipo::node<int> which is accesible to python"""
     cdef node[int]*c_node
     group = str_to_char(group)
@@ -283,7 +309,7 @@ cdef class hipo_reader:
     py_node.setup(c_node)
     return py_node
 
-  cpdef long_node getLongNode(self, group, item):
+  cdef long_node getLongNode(self, group, item):
     """Create a hipo::node<long> which is accesible to python"""
     cdef node[long]*c_node
     group = str_to_char(group)
@@ -293,7 +319,7 @@ cdef class hipo_reader:
     py_node.setup(c_node)
     return py_node
 
-  cpdef char_node getInt8Node(self, group, item):
+  cdef char_node getInt8Node(self, group, item):
     """Create a hipo::node<int8_t> which is accesible to python"""
     cdef node[char]*c_node
     group = str_to_char(group)
@@ -303,7 +329,7 @@ cdef class hipo_reader:
     py_node.setup(c_node)
     return py_node
 
-  cpdef getFloatNode(self, group, item):
+  cdef getFloatNode(self, group, item):
     """Create a hipo::node<float> which is accesible to python"""
     cdef node[float]*c_node
     group = str_to_char(group)
@@ -313,7 +339,7 @@ cdef class hipo_reader:
     py_node.setup(c_node)
     return py_node
 
-  cpdef short_node getInt16Node(self, group, item):
+  cdef short_node getInt16Node(self, group, item):
     """Create a hipo::node<int16_t> which is accesible to python"""
     cdef node[short]*c_node
     group = str_to_char(group)
@@ -325,23 +351,13 @@ cdef class hipo_reader:
 
 cdef class LorentzVector:
   cdef TLorentzVector*c_TLorentzVector
-  cdef public double px, py, pz, mass, energy
   def __cinit__(LorentzVector self, double px, double py, double pz, **kwargs):
-    self.px = px
-    self.py = py
-    self.pz = pz
     if "energy" in kwargs:
       self.c_TLorentzVector = new TLorentzVector(px, py, pz, kwargs["energy"])
-      self.energy = kwargs["energy"]
-      self.mass = self.c_TLorentzVector.M()
     elif "mass" in kwargs:
       self.c_TLorentzVector = new TLorentzVector()
       self.c_TLorentzVector.SetXYZM(px, py, pz, kwargs["mass"])
-      self.mass = kwargs["mass"]
-      self.energy = self.c_TLorentzVector.E()
     else:
-      self.mass = 0
-      self.energy = 0
       self.c_TLorentzVector = new TLorentzVector(px, py, pz, 0)
   def __add__(LorentzVector self, LorentzVector other):
     cdef double X = self.c_TLorentzVector.Px() + other.c_TLorentzVector.Px()
@@ -371,6 +387,8 @@ cdef class LorentzVector:
     return "Px {0: 0.2f} | Py {1: 0.2f} | Pz {2: 0.2f} | E {3: 0.2f}".format(self.px,self.py ,self.pz, self.energy)
   def __repr__(self):
     return self.__str__()
+  def MomentumVec(LorentzVector self):
+    return ThreeVector(self.c_TLorentzVector.Px(), self.c_TLorentzVector.Py(), self.c_TLorentzVector.Pz())
   @property
   def Px(LorentzVector self):
     return self.c_TLorentzVector.Px()
@@ -457,19 +475,73 @@ cdef class LorentzVector:
     return self.c_TLorentzVector.PseudoRapidity()
 
 cdef class ThreeVector:
-  cdef public double vx, vy, vz, L2, L
+  cdef TVector3*c_TVector3
   def __cinit__(ThreeVector self, double vx, double vy, double vz):
-    self.vx = vx
-    self.vy = vy
-    self.vz = vz
-    self.L2 =(vx**2 + vy**2 + vz**2)
-    self.L = sqrt(self.L2)
+    c_TVector3 = new TVector3(vx, vy, vz)
   def __add__(ThreeVector self, ThreeVector other):
-    return ThreeVector(self.vx + other.vx, self.vy + other.vy, self.vz + other.vz)
+    cdef double X = self.c_TVector3.x() + other.c_TVector3.x()
+    cdef double Y = self.c_TVector3.y() + other.c_TVector3.y()
+    cdef double Z = self.c_TVector3.z() + other.c_TVector3.z()
+    return ThreeVector(X, Y, Z)
   def __str__(ThreeVector self):
     return "Vx {0: 0.2f} | Vy {1: 0.2f} | Vz {2: 0.2f}".format(self.vx,self.vy ,self.vz)
   def __repr__(self):
     return self.__str__()
+  @property
+  def x(ThreeVector self):
+    return self.c_TVector3.x()
+  @property
+  def y(ThreeVector self):
+    return self.c_TVector3.y()
+  @property
+  def z(ThreeVector self):
+    return self.c_TVector3.z()
+  @property
+  def X(ThreeVector self):
+    return self.c_TVector3.X()
+  @property
+  def Y(ThreeVector self):
+    return self.c_TVector3.Y()
+  @property
+  def Z(ThreeVector self):
+    return self.c_TVector3.Z()
+  @property
+  def Px(ThreeVector self):
+    return self.c_TVector3.Px()
+  @property
+  def Py(ThreeVector self):
+    return self.c_TVector3.Py()
+  @property
+  def Pz(ThreeVector self):
+    return self.c_TVector3.Pz()
+  @property
+  def Phi(ThreeVector self):
+    return self.c_TVector3.Phi()
+  @property
+  def Theta(ThreeVector self):
+    return self.c_TVector3.Theta()
+  @property
+  def CosTheta(ThreeVector self):
+    return self.c_TVector3.CosTheta()
+  @property
+  def Mag2(ThreeVector self):
+    return self.c_TVector3.Mag2()
+  @property
+  def Mag(ThreeVector self):
+    return self.c_TVector3.Mag()
+  @property
+  def Perp2(ThreeVector self):
+    return self.c_TVector3.Perp2()
+  @property
+  def Pt(ThreeVector self):
+    return self.c_TVector3.Pt()
+  @property
+  def Perp(ThreeVector self):
+    return self.c_TVector3.Perp()
+  @property
+  def Eta (ThreeVector self):
+    return self.c_TVector3.Eta()
+
 
 cdef class Particle:
   cdef public int pid, charge
@@ -578,14 +650,46 @@ cdef class Particle:
 
 cdef class Event:
   cdef hipo_reader hiporeader
-  cdef int_node _run, _pid
-  cdef char_node _charge
-  cdef float_node _px,_py,_pz,_vx,_vy,_vz,_beta
   cdef int run
+  #RUN::config
+  #REC::Particle
+  cdef int_node _run, _pid, _event
+  cdef char_node _charge, _pindex
+  cdef float_node _px, _py, _pz, _vx, _vy, _vz, _beta, _torus, _solenoid
+  #REC::Calorimeter
+  cdef short_node _ec_pindex
+  cdef char_node _ec_detector, _ec_sector, _ec_layer
+  cdef float_node _ec_energy, _ec_time, _ec_path, _ec_x, _ec_y, _ec_z, _ec_lu, _ec_lv, _ec_lw
+  #REC::Cherenkov
+  cdef short_node _cc_pindex
+  cdef char_node _cc_detector, _cc_sector
+  cdef float_node _cc_nphe, _cc_time, _cc_path, _cc_theta, _cc_phi
+  #REC::ForwardTagger
+  cdef short_node _ft_pindex, _ft_size
+  cdef char_node _ft_detector
+  cdef float_node _ft_energy, _ft_time, _ft_path, _ft_x, _ft_y, _ft_z, _ft_dx, _ft_dy, _ft_radius
+  #REC::Scintillator
+  cdef short_node _sc_pindex, _sc_component
+  cdef char_node _sc_detector, _sc_sector, _sc_layer
+  cdef float_node _sc_energy, _sc_time, _sc_path
+  #REC::Track
+  cdef short_node _track_pindex, _track_NDF, _track_NDF_nomm
+  cdef char_node _track_detector, _track_sector
+  cdef float_node _track_chi2, _track_chi2_nomm
+  #REC::Traj
+  cdef short_node _traj_pindex, _traj_detId
+  cdef float_node _traj_x, _traj_y, _traj_z, _traj_cx, _traj_cy, _traj_cz
+
   cdef public list particles, ids
+
   def __cinit__(Event self, hipo_reader reader):
     self.hiporeader = reader
-    self._run = self.hiporeader.getIntNode("RUN::config","run")
+    #RUN::config
+    self._run = reader.getIntNode(u"RUN::config", u"run")
+    self._event = reader.getIntNode(u"RUN::config", u"event")
+    self._torus = reader.getFloatNode(u"RUN::config", u"torus")
+    self._solenoid = reader.getFloatNode(u"RUN::config", u"solenoid")
+    #REC::Particle
     self._pid = self.hiporeader.getIntNode("REC::Particle", "pid")
     self._px = self.hiporeader.getFloatNode("REC::Particle", "px")
     self._py = self.hiporeader.getFloatNode("REC::Particle", "py")
@@ -595,6 +699,69 @@ cdef class Event:
     self._vz = self.hiporeader.getFloatNode("REC::Particle", "vz")
     self._charge = self.hiporeader.getInt8Node("REC::Particle", "charge")
     self._beta = self.hiporeader.getFloatNode("REC::Particle", "beta")
+    #REC::Calorimeter
+    self._ec_pindex = reader.getInt16Node(u"REC::Calorimeter", u"pindex")
+    self._ec_detector = reader.getInt8Node(u"REC::Calorimeter", u"detector")
+    self._ec_sector = reader.getInt8Node(u"REC::Calorimeter", u"sector")
+    self._ec_layer = reader.getInt8Node(u"REC::Calorimeter", u"layer")
+    self._ec_energy = reader.getFloatNode(u"REC::Calorimeter", u"energy")
+    self._ec_time = reader.getFloatNode(u"REC::Calorimeter", u"time")
+    self._ec_path = reader.getFloatNode(u"REC::Calorimeter", u"path")
+    self._ec_x = reader.getFloatNode(u"REC::Calorimeter", u"x")
+    self._ec_y = reader.getFloatNode(u"REC::Calorimeter", u"y")
+    self._ec_z = reader.getFloatNode(u"REC::Calorimeter", u"z")
+    self._ec_lu = reader.getFloatNode(u"REC::Calorimeter", u"lu")
+    self._ec_lv = reader.getFloatNode(u"REC::Calorimeter", u"lv")
+    self._ec_lw = reader.getFloatNode(u"REC::Calorimeter", u"lw")
+    #REC::Cherenkov
+    self._cc_pindex = reader.getInt16Node(u"REC::Cherenkov", u"pindex")
+    self._cc_detector = reader.getInt8Node(u"REC::Cherenkov", u"detector")
+    self._cc_sector = reader.getInt8Node(u"REC::Cherenkov", u"sector")
+    self._cc_nphe = reader.getFloatNode(u"REC::Cherenkov", u"nphe")
+    self._cc_time = reader.getFloatNode(u"REC::Cherenkov", u"time")
+    self._cc_path = reader.getFloatNode(u"REC::Cherenkov", u"path")
+    self._cc_theta = reader.getFloatNode(u"REC::Cherenkov", u"theta")
+    self._cc_phi = reader.getFloatNode(u"REC::Cherenkov", u"phi")
+    #REC::ForwardTagger
+    self._ft_pindex = reader.getInt16Node(u"REC::ForwardTagger", u"pindex")
+    self._ft_detector = reader.getInt8Node(u"REC::ForwardTagger", u"detector")
+    self._ft_energy = reader.getFloatNode(u"REC::ForwardTagger", u"energy")
+    self._ft_time = reader.getFloatNode(u"REC::ForwardTagger", u"time")
+    self._ft_path = reader.getFloatNode(u"REC::ForwardTagger", u"path")
+    self._ft_x = reader.getFloatNode(u"REC::ForwardTagger", u"x")
+    self._ft_y = reader.getFloatNode(u"REC::ForwardTagger", u"y")
+    self._ft_z = reader.getFloatNode(u"REC::ForwardTagger", u"z")
+    self._ft_dx = reader.getFloatNode(u"REC::ForwardTagger", u"dx")
+    self._ft_dy = reader.getFloatNode(u"REC::ForwardTagger", u"dy")
+    self._ft_radius = reader.getFloatNode(u"REC::ForwardTagger", u"radius")
+    self._ft_size = reader.getInt16Node(u"REC::ForwardTagger", u"size")
+    #REC::Scintillator
+    self._sc_pindex = reader.getInt16Node(u"REC::Scintillator", u"pindex")
+    self._sc_detector = reader.getInt8Node(u"REC::Scintillator", u"detector")
+    self._sc_sector = reader.getInt8Node(u"REC::Scintillator", u"sector")
+    self._sc_layer = reader.getInt8Node(u"REC::Scintillator", u"layer")
+    self._sc_component = reader.getInt16Node(u"REC::Scintillator", u"component")
+    self._sc_energy = reader.getFloatNode(u"REC::Scintillator", u"energy")
+    self._sc_time = reader.getFloatNode(u"REC::Scintillator", u"time")
+    self._sc_path = reader.getFloatNode(u"REC::Scintillator", u"path")
+    #REC::Track
+    self._track_pindex = reader.getInt16Node(u"REC::Track", u"pindex")
+    self._track_detector = reader.getInt8Node(u"REC::Track", u"detector")
+    self._track_sector = reader.getInt8Node(u"REC::Track", u"sector")
+    self._track_chi2 = reader.getFloatNode(u"REC::Track", u"chi2")
+    self._track_NDF = reader.getInt16Node(u"REC::Track", u"NDF")
+    self._track_chi2_nomm = reader.getFloatNode(u"REC::Track", u"chi2_nomm")
+    self._track_NDF_nomm = reader.getInt16Node(u"REC::Track", u"NDF_nomm")
+    #REC::Traj
+    self._traj_pindex = reader.getInt16Node(u"REC::Traj", u"pindex")
+    self._traj_detId = reader.getInt16Node(u"REC::Traj", u"detId")
+    self._traj_x = reader.getFloatNode(u"REC::Traj", u"x")
+    self._traj_y = reader.getFloatNode(u"REC::Traj", u"y")
+    self._traj_z = reader.getFloatNode(u"REC::Traj", u"z")
+    self._traj_cx = reader.getFloatNode(u"REC::Traj", u"cx")
+    self._traj_cy = reader.getFloatNode(u"REC::Traj", u"cy")
+    self._traj_cz = reader.getFloatNode(u"REC::Traj", u"cz")
+
   def __len__(Event self):
     return self._pid.getLength()
   def __iter__(Event self):
@@ -602,12 +769,14 @@ cdef class Event:
   def next(Event self):
     if self.hiporeader.next():
       self.loadParts()
+      self.loadDetectors()
       return self
     else:
       raise StopIteration
   def __next__(Event self):
     if self.hiporeader.next():
       self.loadParts()
+      self.loadDetectors()
       return self
     else:
       raise StopIteration
@@ -622,3 +791,23 @@ cdef class Event:
       self.ids[i] = self._pid[i]
       self.particles[i] = Particle(self._px[i], self._py[i], self._pz[i], self._pid[i],
                           self._vx[i], self._vy[i], self._vz[i], self._charge[i], self._beta[i])
+  def loadDetectors(Event self):
+    cdef int l_ec = len(self._ec_pindex)
+    cdef int l_cc = len(self._cc_pindex)
+    cdef int l_ft = len(self._ft_pindex)
+    cdef int l_sc = len(self._sc_pindex)
+    cdef int l_track = len(self._track_pindex)
+    cdef int l_traj = len(self._traj_pindex)
+    cdef int i = 0
+    for i in range(0, l_ec):
+      pass
+    for i in range(0, l_cc):
+      pass
+    for i in range(0, l_ft):
+      pass
+    for i in range(0, l_sc):
+      pass
+    for i in range(0, l_track):
+      pass
+    for i in range(0, l_traj):
+      pass
