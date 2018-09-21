@@ -2,10 +2,14 @@
 # distutils: language = c++
 from libcpp.vector cimport vector
 from libcpp.string cimport string
-from libc.math cimport isnan
+from libcpp.map cimport map
+from libcpp.utility cimport pair
 from libcpp cimport bool
+
+from libc.math cimport isnan, sqrt, log, atan2
+
 import numpy as np
-from libc.math cimport sqrt, log, atan2
+
 import json
 
 cdef dict get_id = {'PROTON': 2212, 'NEUTRON': 2112, 'PIP': 211, 'PIM': -211, 'PI0': 111, 'KP': 321, 'KM': -321, 'PHOTON': 22, 'ELECTRON': 11}
@@ -544,16 +548,17 @@ cdef class ThreeVector:
 
 
 cdef class Particle:
-  cdef public int pid, charge
-  cdef public double mass, vx, vy, vz, beta
-  cdef public LorentzVector FourVector
-  cdef public ThreeVector Vertex
+  cdef:
+    public int pid, charge
+    public double mass, vx, vy, vz, beta
+    public LorentzVector FourVector
+    public ThreeVector Vertex
   def __cinit__(Particle self, double px, double py, double pz, int pid, double vx, double vy, double vz, int charge, double beta):
     self.pid = pid
     self.charge = charge
-    self.Vertex = ThreeVector(vx, vy, vz)
     self.beta = beta
     self.mass = part_mass.get(self.pid, 0)
+    self.Vertex = ThreeVector(vx, vy, vz)
     self.FourVector = LorentzVector(px, py, pz, mass=self.mass)
   def __add__(Particle self, Particle other):
     return self.FourVector + other.FourVector
@@ -649,38 +654,39 @@ cdef class Particle:
     return self.FourVector.PseudoRapidity
 
 cdef class Event:
-  cdef hipo_reader hiporeader
-  cdef int run
-  #RUN::config
-  #REC::Particle
-  cdef int_node _run, _pid, _event
-  cdef char_node _charge, _pindex
-  cdef float_node _px, _py, _pz, _vx, _vy, _vz, _beta, _torus, _solenoid
-  #REC::Calorimeter
-  cdef short_node _ec_pindex
-  cdef char_node _ec_detector, _ec_sector, _ec_layer
-  cdef float_node _ec_energy, _ec_time, _ec_path, _ec_x, _ec_y, _ec_z, _ec_lu, _ec_lv, _ec_lw
-  #REC::Cherenkov
-  cdef short_node _cc_pindex
-  cdef char_node _cc_detector, _cc_sector
-  cdef float_node _cc_nphe, _cc_time, _cc_path, _cc_theta, _cc_phi
-  #REC::ForwardTagger
-  cdef short_node _ft_pindex, _ft_size
-  cdef char_node _ft_detector
-  cdef float_node _ft_energy, _ft_time, _ft_path, _ft_x, _ft_y, _ft_z, _ft_dx, _ft_dy, _ft_radius
-  #REC::Scintillator
-  cdef short_node _sc_pindex, _sc_component
-  cdef char_node _sc_detector, _sc_sector, _sc_layer
-  cdef float_node _sc_energy, _sc_time, _sc_path
-  #REC::Track
-  cdef short_node _track_pindex, _track_NDF, _track_NDF_nomm
-  cdef char_node _track_detector, _track_sector
-  cdef float_node _track_chi2, _track_chi2_nomm
-  #REC::Traj
-  cdef short_node _traj_pindex, _traj_detId
-  cdef float_node _traj_x, _traj_y, _traj_z, _traj_cx, _traj_cy, _traj_cz
+  cdef:
+    hipo_reader hiporeader
+    int run
+    #RUN::config
+    #REC::Particle
+    int_node _run, _pid, _event
+    char_node _charge, _pindex
+    float_node _px, _py, _pz, _vx, _vy, _vz, _beta, _torus, _solenoid
+    #REC::Calorimeter
+    short_node _ec_pindex
+    char_node _ec_detector, _ec_sector, _ec_layer
+    float_node _ec_energy, _ec_time, _ec_path, _ec_x, _ec_y, _ec_z, _ec_lu, _ec_lv, _ec_lw
+    #REC::Cherenkov
+    short_node _cc_pindex
+    char_node _cc_detector, _cc_sector
+    float_node _cc_nphe, _cc_time, _cc_path, _cc_theta, _cc_phi
+    #REC::ForwardTagger
+    short_node _ft_pindex, _ft_size
+    char_node _ft_detector
+    float_node _ft_energy, _ft_time, _ft_path, _ft_x, _ft_y, _ft_z, _ft_dx, _ft_dy, _ft_radius
+    #REC::Scintillator
+    short_node _sc_pindex, _sc_component
+    char_node _sc_detector, _sc_sector, _sc_layer
+    float_node _sc_energy, _sc_time, _sc_path
+    #REC::Track
+    short_node _track_pindex, _track_NDF, _track_NDF_nomm
+    char_node _track_detector, _track_sector
+    float_node _track_chi2, _track_chi2_nomm
+    #REC::Traj
+    short_node _traj_pindex, _traj_detId
+    float_node _traj_x, _traj_y, _traj_z, _traj_cx, _traj_cy, _traj_cz
 
-  cdef public list particles, ids
+    public list particles, ids
 
   def __cinit__(Event self, hipo_reader reader):
     self.hiporeader = reader
@@ -792,22 +798,23 @@ cdef class Event:
       self.particles[i] = Particle(self._px[i], self._py[i], self._pz[i], self._pid[i],
                           self._vx[i], self._vy[i], self._vz[i], self._charge[i], self._beta[i])
   def loadDetectors(Event self):
-    cdef int l_ec = len(self._ec_pindex)
-    cdef int l_cc = len(self._cc_pindex)
-    cdef int l_ft = len(self._ft_pindex)
-    cdef int l_sc = len(self._sc_pindex)
-    cdef int l_track = len(self._track_pindex)
-    cdef int l_traj = len(self._traj_pindex)
-    cdef int i = 0
+    cdef:
+      int l_ec = len(self._ec_pindex)
+      int l_cc = len(self._cc_pindex)
+      int l_ft = len(self._ft_pindex)
+      int l_sc = len(self._sc_pindex)
+      int l_track = len(self._track_pindex)
+      int l_traj = len(self._traj_pindex)
+      int i,p = 0
     for i in range(0, l_ec):
-      pass
+      p += 1
     for i in range(0, l_cc):
-      pass
+      p += 1
     for i in range(0, l_ft):
-      pass
+      p += 1
     for i in range(0, l_sc):
-      pass
+      p += 1
     for i in range(0, l_track):
-      pass
+      p += 1
     for i in range(0, l_traj):
-      pass
+      p += 1
