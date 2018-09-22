@@ -16,7 +16,7 @@ matrix:
           - $HOME/Library/Caches/Homebrew
       script:
         - export SOURCE=$PWD
-        - brew install lz4; echo "Done"
+        - brew install lz4 root; echo "Done"
         - pip install cython scikit-build numpy
         - mkdir build && cd build
         - cmake .. -DCMAKE_INSTALL_PREFIX=$SOURCE/install
