@@ -117,63 +117,168 @@ def process(filenames):
 start = time.time()
 events, delta_px, delta_py, delta_pz, W, W_mc, Q2, Q2_mc, delta_W = process(sys.argv[1:])
 
-fig_p, axs_p = plt.subplots(3, SECTORS, sharex=True, sharey='row', figsize=(16, 10))
+fig_p, axs_p = plt.subplots(3, 6, sharex=True, sharey='row', figsize=(16, 10))
 fig_p.text(0.5, 0.04, '$\Delta$ P', ha='center')
 axs_p[0, 0].set_ylabel("$\Delta P_x$")
 axs_p[1, 0].set_ylabel("$\Delta P_y$")
 axs_p[2, 0].set_ylabel("$\Delta P_z$")
 
-fig_WQ2, axs_WQ2 = plt.subplots(2, SECTORS, sharey='row', figsize=(16, 10))
-for s in range(0, SECTORS):
+fig_WQ2, axs_WQ2 = plt.subplots(2, 6, sharey='row', figsize=(16, 10))
+for s in range(1, SECTORS):
+    i = s - 1
     dpx = delta_px[s]
     dpx = dpx[~np.isnan(dpx)]
-    y, bins, _ = axs_p[0, s].hist(dpx, bins=50, range=(-1, 1), color='darkred',
+    y, bins, _ = axs_p[0, i].hist(dpx, bins=50, range=(-1, 1), color='darkred',
                                   histtype='step', fill=True, density=True)
-    axs_p[0, s].set_title("Sector: {0:d}".format(s))
+    axs_p[0, i].set_title("Sector: {0:d}".format(s))
 
     x = (bins[:-1] + bins[1:]) / 2
     popt, pcov = curve_fit(gaus, x, y, p0=[1.0, 1.0, 1.0])
-    axs_p[0, s].plot(x, gaus(x, *popt), "blue",
+    axs_p[0, i].plot(x, gaus(x, *popt), "blue",
                      label="$\mu$ = {0:.4f}\n$\sigma$ = {1:.4f}".format(popt[1], popt[2]), linewidth=2)
-    axs_p[0, s].legend()
+    axs_p[0, i].legend()
 
     dpy = delta_py[s]
     dpy = dpy[~np.isnan(dpy)]
-    y, bins, _ = axs_p[1, s].hist(dpy, bins=50, range=(-1, 1), color='darkgreen',
+    y, bins, _ = axs_p[1, i].hist(dpy, bins=50, range=(-1, 1), color='darkgreen',
                                   histtype='step', fill=True, density=True)
     x = (bins[:-1] + bins[1:]) / 2
     popt, pcov = curve_fit(gaus, x, y, p0=[1.0, 1.0, 1.0])
-    axs_p[1, s].plot(x, gaus(x, *popt), "red",
+    axs_p[1, i].plot(x, gaus(x, *popt), "red",
                      label="$\mu$ = {0:.4f}\n$\sigma$ = {1:.4f}".format(popt[1], popt[2]), linewidth=2)
-    axs_p[1, s].legend()
+    axs_p[1, i].legend()
 
     dpz = delta_pz[s]
     dpz = dpz[~np.isnan(dpz)]
-    y, bins, _ = axs_p[2, s].hist(dpz, bins=50, range=(-1, 1), color='darkblue',
+    y, bins, _ = axs_p[2, i].hist(dpz, bins=50, range=(-1, 1), color='darkblue',
                                   histtype='step', fill=True, density=True)
     x = (bins[:-1] + bins[1:]) / 2
     popt, pcov = curve_fit(gaus, x, y, p0=[1.0, 1.0, 1.0])
-    axs_p[2, s].plot(x, gaus(x, *popt), "green",
+    axs_p[2, i].plot(x, gaus(x, *popt), "green",
                      label="$\mu$ = {0:.4f}\n$\sigma$ = {1:.4f}".format(popt[1], popt[2]), linewidth=2)
-    axs_p[2, s].legend()
+    axs_p[2, i].legend()
 
     W_s = W[s]
     Q2_s = Q2[s]
     W_s = W_s[~np.isnan(W_s)]
     Q2_s = Q2_s[~np.isnan(Q2_s)]
-    y, bins, _ = axs_WQ2[0, s].hist(W_s, bins=100, range=(0.8, 1.1), color='darkblue',
+    y, bins, _ = axs_WQ2[0, i].hist(W_s, bins=100, range=(0.8, 1.1), color='darkblue',
                                     histtype='step', fill=True, density=True)
     x = (bins[:-1] + bins[1:]) / 2
     popt, pcov = curve_fit(gaus, x, y, p0=[1.0, 1.0, 1.0])
-    axs_WQ2[0, s].plot(x, gaus(x, *popt), "red",
+    axs_WQ2[0, i].plot(x, gaus(x, *popt), "red",
                        label="$\mu$ = {0:.4f}\n$\sigma$ = {1:.4f}".format(popt[1], popt[2]), linewidth=2)
-    axs_WQ2[0, s].legend()
+    axs_WQ2[0, i].legend()
 
-    axs_WQ2[1, s].hist2d(W_s, Q2_s, bins=100, range=((0.8, 1.1), (0, 1.0)))
-    axs_WQ2[0, s].set_title("Sector {0:d} W vs $Q^2$".format(s))
+    axs_WQ2[1, i].hist2d(W_s, Q2_s, bins=100, range=((0.8, 1.1), (0, 1.0)))
+    axs_WQ2[0, i].set_title("Sector {0:d} W vs $Q^2$".format(s))
 
-fig_p.savefig("delta_p.pdf")
-fig_WQ2.savefig("WvsQ2.pdf")
+fig_p2, axs_p2 = plt.subplots(3, 2, sharex=True, sharey='row', figsize=(16, 10))
+fig_p2.text(0.5, 0.04, '$\Delta$ P', ha='center')
+axs_p2[0, 0].set_ylabel("$\Delta P_x$")
+axs_p2[1, 0].set_ylabel("$\Delta P_y$")
+axs_p2[2, 0].set_ylabel("$\Delta P_z$")
+fig_WQ22, axs_WQ22 = plt.subplots(2, 2, sharey='row', figsize=(16, 10))
+
+dpx = delta_px[0]
+dpx = dpx[~np.isnan(dpx)]
+y, bins, _ = axs_p2[0, 0].hist(dpx, bins=50, range=(-1, 1), color='darkred',
+                               histtype='step', fill=True, density=True)
+axs_p2[0, 0].set_title("No Sector".format(s))
+
+x = (bins[:-1] + bins[1:]) / 2
+popt, pcov = curve_fit(gaus, x, y, p0=[1.0, 1.0, 1.0])
+axs_p2[0, 0].plot(x, gaus(x, *popt), "blue",
+                  label="$\mu$ = {0:.4f}\n$\sigma$ = {1:.4f}".format(popt[1], popt[2]), linewidth=2)
+axs_p2[0, 0].legend()
+
+dpy = delta_py[0]
+dpy = dpy[~np.isnan(dpy)]
+y, bins, _ = axs_p2[1, 0].hist(dpy, bins=50, range=(-1, 1), color='darkgreen',
+                               histtype='step', fill=True, density=True)
+x = (bins[:-1] + bins[1:]) / 2
+popt, pcov = curve_fit(gaus, x, y, p0=[1.0, 1.0, 1.0])
+axs_p2[1, 0].plot(x, gaus(x, *popt), "red",
+                  label="$\mu$ = {0:.4f}\n$\sigma$ = {1:.4f}".format(popt[1], popt[2]), linewidth=2)
+axs_p2[1, 0].legend()
+
+dpz = delta_pz[0]
+dpz = dpz[~np.isnan(dpz)]
+y, bins, _ = axs_p2[2, 0].hist(dpz, bins=50, range=(-1, 1), color='darkblue',
+                               histtype='step', fill=True, density=True)
+x = (bins[:-1] + bins[1:]) / 2
+popt, pcov = curve_fit(gaus, x, y, p0=[1.0, 1.0, 1.0])
+axs_p2[2, 0].plot(x, gaus(x, *popt), "green",
+                  label="$\mu$ = {0:.4f}\n$\sigma$ = {1:.4f}".format(popt[1], popt[2]), linewidth=2)
+axs_p2[2, 0].legend()
+
+W_s = W[0]
+Q2_s = Q2[0]
+W_s = W_s[~np.isnan(W_s)]
+Q2_s = Q2_s[~np.isnan(Q2_s)]
+y, bins, _ = axs_WQ22[0, 0].hist(W_s, bins=100, range=(0.8, 1.1), color='darkblue',
+                                 histtype='step', fill=True, density=True)
+x = (bins[:-1] + bins[1:]) / 2
+popt, pcov = curve_fit(gaus, x, y, p0=[1.0, 1.0, 1.0])
+axs_WQ22[0, 0].plot(x, gaus(x, *popt), "red",
+                    label="$\mu$ = {0:.4f}\n$\sigma$ = {1:.4f}".format(popt[1], popt[2]), linewidth=2)
+axs_WQ22[0, 0].legend()
+
+axs_WQ22[1, 0].hist2d(W_s, Q2_s, bins=100, range=((0.8, 1.1), (0, 1.0)))
+axs_WQ22[0, 0].set_title("No Sector W vs $Q^2$".format(s))
+##########################
+dpx = delta_px[:]
+dpx = dpx[~np.isnan(dpx)]
+y, bins, _ = axs_p2[0, 1].hist(dpx, bins=50, range=(-1, 1), color='darkred',
+                               histtype='step', fill=True, density=True)
+axs_p2[0, 1].set_title("All Sectors".format(s))
+
+x = (bins[:-1] + bins[1:]) / 2
+popt, pcov = curve_fit(gaus, x, y, p0=[1.0, 1.0, 1.0])
+axs_p2[0, 1].plot(x, gaus(x, *popt), "blue",
+                  label="$\mu$ = {0:.4f}\n$\sigma$ = {1:.4f}".format(popt[1], popt[2]), linewidth=2)
+axs_p2[0, 1].legend()
+
+dpy = delta_py[:]
+dpy = dpy[~np.isnan(dpy)]
+y, bins, _ = axs_p2[1, 1].hist(dpy, bins=50, range=(-1, 1), color='darkgreen',
+                               histtype='step', fill=True, density=True)
+x = (bins[:-1] + bins[1:]) / 2
+popt, pcov = curve_fit(gaus, x, y, p0=[1.0, 1.0, 1.0])
+axs_p2[1, 1].plot(x, gaus(x, *popt), "red",
+                  label="$\mu$ = {0:.4f}\n$\sigma$ = {1:.4f}".format(popt[1], popt[2]), linewidth=2)
+axs_p2[1, 1].legend()
+
+dpz = delta_pz[:]
+dpz = dpz[~np.isnan(dpz)]
+y, bins, _ = axs_p2[2, 1].hist(dpz, bins=50, range=(-1, 1), color='darkblue',
+                               histtype='step', fill=True, density=True)
+x = (bins[:-1] + bins[1:]) / 2
+popt, pcov = curve_fit(gaus, x, y, p0=[1.0, 1.0, 1.0])
+axs_p2[2, 1].plot(x, gaus(x, *popt), "green",
+                  label="$\mu$ = {0:.4f}\n$\sigma$ = {1:.4f}".format(popt[1], popt[2]), linewidth=2)
+axs_p2[2, 1].legend()
+
+W_s = W[:]
+Q2_s = Q2[:]
+W_s = W_s[~np.isnan(W_s)]
+Q2_s = Q2_s[~np.isnan(Q2_s)]
+y, bins, _ = axs_WQ22[0, 1].hist(W_s, bins=100, range=(0.8, 1.1), color='darkblue',
+                                 histtype='step', fill=True, density=True)
+x = (bins[:-1] + bins[1:]) / 2
+popt, pcov = curve_fit(gaus, x, y, p0=[1.0, 1.0, 1.0])
+axs_WQ22[0, 1].plot(x, gaus(x, *popt), "red",
+                    label="$\mu$ = {0:.4f}\n$\sigma$ = {1:.4f}".format(popt[1], popt[2]), linewidth=2)
+axs_WQ22[0, 1].legend()
+
+axs_WQ22[1, 1].hist2d(W_s, Q2_s, bins=100, range=((0.8, 1.1), (0, 1.0)))
+axs_WQ22[0, 1].set_title("All Sectors W vs $Q^2$".format(s))
+
+fig_p.savefig("delta_p_bySector.pdf")
+fig_WQ2.savefig("WvsQ2_bySector.pdf")
+fig_p2.savefig("delta_p.pdf")
+fig_WQ22.savefig("WvsQ2.pdf")
+
 
 end = time.time()
 print((end - start), "Sec")
