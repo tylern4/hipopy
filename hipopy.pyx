@@ -6,6 +6,8 @@ from libcpp.map cimport map
 from libcpp.utility cimport pair
 from libcpp cimport bool
 
+from collections import defaultdict
+
 from libc.math cimport isnan, sqrt, log, atan2
 
 import numpy as np
@@ -266,6 +268,10 @@ cdef class hipo_reader:
     """Load the next vaules of the ntuple [Returns true if there is an event]"""
     return self.c_reader.next()
 
+  cdef bool c_next(self):
+    """Load the next vaules of the ntuple [Returns true if there is an event]"""
+    return self.c_reader.next()
+
   def __next__(self):
     """Load the next vaules of the ntuple [Returns true if there is an event]"""
     return self.c_reader.next()
@@ -303,7 +309,7 @@ cdef class hipo_reader:
     """Get dictionary as a json object"""
     return json.loads(self.jsonString())
 
-  cdef int_node getIntNode(self, group, item):
+  cpdef getIntNode(self, group, item):
     """Create a hipo::node<int> which is accesible to python"""
     cdef node[int]*c_node
     group = str_to_char(group)
@@ -313,7 +319,7 @@ cdef class hipo_reader:
     py_node.setup(c_node)
     return py_node
 
-  cdef long_node getLongNode(self, group, item):
+  cpdef getLongNode(self, group, item):
     """Create a hipo::node<long> which is accesible to python"""
     cdef node[long]*c_node
     group = str_to_char(group)
@@ -323,7 +329,7 @@ cdef class hipo_reader:
     py_node.setup(c_node)
     return py_node
 
-  cdef char_node getInt8Node(self, group, item):
+  cpdef getInt8Node(self, group, item):
     """Create a hipo::node<int8_t> which is accesible to python"""
     cdef node[char]*c_node
     group = str_to_char(group)
@@ -333,7 +339,7 @@ cdef class hipo_reader:
     py_node.setup(c_node)
     return py_node
 
-  cdef getFloatNode(self, group, item):
+  cpdef getFloatNode(self, group, item):
     """Create a hipo::node<float> which is accesible to python"""
     cdef node[float]*c_node
     group = str_to_char(group)
@@ -343,7 +349,7 @@ cdef class hipo_reader:
     py_node.setup(c_node)
     return py_node
 
-  cdef short_node getInt16Node(self, group, item):
+  cpdef getInt16Node(self, group, item):
     """Create a hipo::node<int16_t> which is accesible to python"""
     cdef node[short]*c_node
     group = str_to_char(group)
@@ -361,6 +367,9 @@ cdef class LorentzVector:
     elif "mass" in kwargs:
       self.c_TLorentzVector = new TLorentzVector()
       self.c_TLorentzVector.SetXYZM(px, py, pz, kwargs["mass"])
+    elif "pid" in kwargs:
+      self.c_TLorentzVector = new TLorentzVector()
+      self.c_TLorentzVector.SetXYZM(px, py, pz, part_mass[kwargs["pid"]])
     else:
       self.c_TLorentzVector = new TLorentzVector(px, py, pz, 0)
   def __add__(LorentzVector self, LorentzVector other):
@@ -380,7 +389,7 @@ cdef class LorentzVector:
     cdef double Y = self.c_TLorentzVector.Py() - other.c_TLorentzVector.Py()
     cdef double Z = self.c_TLorentzVector.Pz() - other.c_TLorentzVector.Pz()
     cdef double E = self.c_TLorentzVector.E() - other.c_TLorentzVector.E()
-    return LorentzVector(X, Y, Z, E, energy=E)
+    return LorentzVector(X, Y, Z, energy=E)
   def __isub__(LorentzVector self, LorentzVector other):
     cdef double X = self.c_TLorentzVector.Px() - other.c_TLorentzVector.Px()
     cdef double Y = self.c_TLorentzVector.Py() - other.c_TLorentzVector.Py()
@@ -549,10 +558,10 @@ cdef class ThreeVector:
 
 cdef class Particle:
   cdef:
-    public int pid, charge
-    public double mass, vx, vy, vz, beta
-    public LorentzVector FourVector
-    public ThreeVector Vertex
+    int pid, charge
+    double mass, beta
+    LorentzVector FourVector
+    ThreeVector Vertex
   def __cinit__(Particle self, double px, double py, double pz, int pid, double vx, double vy, double vz, int charge, double beta):
     self.pid = pid
     self.charge = charge
@@ -569,6 +578,18 @@ cdef class Particle:
   def __repr__(Particle self):
     return self.__str__()
   @property
+  def pid(Particle self):
+    return self.pid
+  @property
+  def charge(Particle self):
+    return self.charge
+  @property
+  def mass(Particle self):
+    return self.mass
+  @property
+  def beta(Particle self):
+    return self.beta
+  @property
   def Px(Particle self):
     return self.FourVector.Px
   @property
@@ -577,6 +598,15 @@ cdef class Particle:
   @property
   def Pz(Particle self):
     return self.FourVector.Pz
+  @property
+  def Vx(Particle self):
+    return self.Vertex.x
+  @property
+  def Vy(Particle self):
+    return self.Vertex.y
+  @property
+  def Vz(Particle self):
+    return self.Vertex.z
   @property
   def P(Particle self):
     return self.FourVector.P
@@ -696,15 +726,15 @@ cdef class Event:
     self._torus = reader.getFloatNode(u"RUN::config", u"torus")
     self._solenoid = reader.getFloatNode(u"RUN::config", u"solenoid")
     #REC::Particle
-    self._pid = self.hiporeader.getIntNode("REC::Particle", "pid")
-    self._px = self.hiporeader.getFloatNode("REC::Particle", "px")
-    self._py = self.hiporeader.getFloatNode("REC::Particle", "py")
-    self._pz = self.hiporeader.getFloatNode("REC::Particle", "pz")
-    self._vx = self.hiporeader.getFloatNode("REC::Particle", "vx")
-    self._vy = self.hiporeader.getFloatNode("REC::Particle", "vy")
-    self._vz = self.hiporeader.getFloatNode("REC::Particle", "vz")
-    self._charge = self.hiporeader.getInt8Node("REC::Particle", "charge")
-    self._beta = self.hiporeader.getFloatNode("REC::Particle", "beta")
+    self._pid = reader.getIntNode("REC::Particle", "pid")
+    self._px = reader.getFloatNode("REC::Particle", "px")
+    self._py = reader.getFloatNode("REC::Particle", "py")
+    self._pz = reader.getFloatNode("REC::Particle", "pz")
+    self._vx = reader.getFloatNode("REC::Particle", "vx")
+    self._vy = reader.getFloatNode("REC::Particle", "vy")
+    self._vz = reader.getFloatNode("REC::Particle", "vz")
+    self._charge = reader.getInt8Node("REC::Particle", "charge")
+    self._beta = reader.getFloatNode("REC::Particle", "beta")
     #REC::Calorimeter
     self._ec_pindex = reader.getInt16Node(u"REC::Calorimeter", u"pindex")
     self._ec_detector = reader.getInt8Node(u"REC::Calorimeter", u"detector")
@@ -773,31 +803,31 @@ cdef class Event:
   def __iter__(Event self):
       return self
   def next(Event self):
-    if self.hiporeader.next():
+    if self.hiporeader.c_next():
       self.loadParts()
       self.loadDetectors()
       return self
     else:
       raise StopIteration
   def __next__(Event self):
-    if self.hiporeader.next():
+    if self.hiporeader.c_next():
       self.loadParts()
       self.loadDetectors()
       return self
     else:
       raise StopIteration
-  def loadParts(Event self):
+  cdef void loadParts(Event self):
     if self._run.getLength() > 0:
       self.run = self._run[0]
     cdef int l = len(self)
     cdef int i = 0
     self.particles = [None] * l
     self.ids = [None] * l
-    for i in range(0, l):
+    for i in xrange(0, l):
       self.ids[i] = self._pid[i]
       self.particles[i] = Particle(self._px[i], self._py[i], self._pz[i], self._pid[i],
                           self._vx[i], self._vy[i], self._vz[i], self._charge[i], self._beta[i])
-  def loadDetectors(Event self):
+  cdef void loadDetectors(Event self):
     cdef:
       int l_ec = len(self._ec_pindex)
       int l_cc = len(self._cc_pindex)
@@ -806,15 +836,15 @@ cdef class Event:
       int l_track = len(self._track_pindex)
       int l_traj = len(self._traj_pindex)
       int i,p = 0
-    for i in range(0, l_ec):
+    for i in xrange(0, l_ec):
       p += 1
-    for i in range(0, l_cc):
+    for i in xrange(0, l_cc):
       p += 1
-    for i in range(0, l_ft):
+    for i in xrange(0, l_ft):
       p += 1
-    for i in range(0, l_sc):
+    for i in xrange(0, l_sc):
       p += 1
-    for i in range(0, l_track):
+    for i in xrange(0, l_track):
       p += 1
-    for i in range(0, l_traj):
+    for i in xrange(0, l_traj):
       p += 1
