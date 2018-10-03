@@ -373,34 +373,32 @@ cdef class LorentzVector:
       self.c_TLorentzVector.SetXYZM(px, py, pz, part_mass[kwargs["pid"]])
     else:
       self.c_TLorentzVector = new TLorentzVector(px, py, pz, 0)
+  def __dealloc__(self):
+    del self.c_TLorentzVector
   def __add__(LorentzVector self, LorentzVector other):
     cdef double X = self.c_TLorentzVector.Px() + other.c_TLorentzVector.Px()
     cdef double Y = self.c_TLorentzVector.Py() + other.c_TLorentzVector.Py()
     cdef double Z = self.c_TLorentzVector.Pz() + other.c_TLorentzVector.Pz()
     cdef double E = self.c_TLorentzVector.E() + other.c_TLorentzVector.E()
-    self.c_TLorentzVector.SetXYZT(X,Y,Z,E)
-    return self
+    return LorentzVector(X, Y, Z, energy=E)
   def __iadd__(LorentzVector self, LorentzVector other):
     cdef double X = self.c_TLorentzVector.Px() + other.c_TLorentzVector.Px()
     cdef double Y = self.c_TLorentzVector.Py() + other.c_TLorentzVector.Py()
     cdef double Z = self.c_TLorentzVector.Pz() + other.c_TLorentzVector.Pz()
     cdef double E = self.c_TLorentzVector.E() + other.c_TLorentzVector.E()
-    self.c_TLorentzVector.SetXYZT(X,Y,Z,E)
-    return self
+    return LorentzVector(X, Y, Z, energy=E)
   def __sub__(LorentzVector self, LorentzVector other):
     cdef double X = self.c_TLorentzVector.Px() - other.c_TLorentzVector.Px()
     cdef double Y = self.c_TLorentzVector.Py() - other.c_TLorentzVector.Py()
     cdef double Z = self.c_TLorentzVector.Pz() - other.c_TLorentzVector.Pz()
     cdef double E = self.c_TLorentzVector.E() - other.c_TLorentzVector.E()
-    self.c_TLorentzVector.SetXYZT(X,Y,Z,E)
-    return self
+    return LorentzVector(X, Y, Z, energy=E)
   def __isub__(LorentzVector self, LorentzVector other):
     cdef double X = self.c_TLorentzVector.Px() - other.c_TLorentzVector.Px()
     cdef double Y = self.c_TLorentzVector.Py() - other.c_TLorentzVector.Py()
     cdef double Z = self.c_TLorentzVector.Pz() - other.c_TLorentzVector.Pz()
     cdef double E = self.c_TLorentzVector.E() - other.c_TLorentzVector.E()
-    self.c_TLorentzVector.SetXYZT(X,Y,Z,E)
-    return self
+    return LorentzVector(X, Y, Z, energy=E)
   def __str__(self):
     return "Px {0: 0.2f} | Py {1: 0.2f} | Pz {2: 0.2f} | E {3: 0.2f}".format(self.px,self.py ,self.pz, self.energy)
   def __repr__(self):
@@ -408,7 +406,7 @@ cdef class LorentzVector:
   def MomentumVec(LorentzVector self):
     return ThreeVector(self.c_TLorentzVector.Px(), self.c_TLorentzVector.Py(), self.c_TLorentzVector.Pz())
   def SetPxPyPzM(LorentzVector self, double px, double py, double pz, double mass):
-    return self.c_TLorentzVector.SetXYZM(px, py, pz, mass)
+    self.c_TLorentzVector.SetXYZM(px, py, pz, mass)
   @property
   def Px(LorentzVector self):
     return self.c_TLorentzVector.Px()
