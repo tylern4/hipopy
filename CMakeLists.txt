@@ -3,6 +3,7 @@ project(hipoio)
 set(VERSION 0.0.1)
 
 list(APPEND CMAKE_PREFIX_PATH $ENV{ROOTSYS})
+message(STATUS "ROOTSYS: " $ENV{ROOTSYS})
 find_package(ROOT REQUIRED COMPONENTS RIO Net)
 include(${ROOT_USE_FILE})
 
