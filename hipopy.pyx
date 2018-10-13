@@ -583,6 +583,9 @@ cdef class Particle:
   def __repr__(Particle self):
     return self.__str__()
   @property
+  def FourVector(Particle self):
+    return self.FourVector
+  @property
   def pid(Particle self):
     return self.pid
   @property
