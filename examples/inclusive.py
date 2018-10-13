@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# %%
 from __future__ import print_function
 
 import sys
@@ -78,7 +79,7 @@ def process(filenames):
             if len(pid) == 0:
                 continue
             num += 1
-            sec = GetSector(cal_pindex, cal_sector)
+            sec = GetSector(track_pindex, track_sector)
             e_mu_prime = LorentzVector(px[0], py[0], pz[0], mass=MASS_ELEC)
             W[sec][num] = W_calc(e_mu, e_mu_prime)
             Q2[sec][num] = Q2_calc(e_mu, e_mu_prime)
@@ -86,9 +87,15 @@ def process(filenames):
     return events, W, Q2
 
 
+# %%
 start = time.time()
 events, W, Q2 = process(sys.argv[1:])
+end = time.time()
+print((end - start), "Sec")
+print(((end - start) / events), "time/event")
+print((events / (end - start)), "Hz")
 
+# %%
 fig_WQ2, axs_WQ2 = plt.subplots(2, 6, sharey='row', figsize=(16, 10))
 for s in range(1, SECTORS):
     i = s - 1
@@ -96,54 +103,38 @@ for s in range(1, SECTORS):
     Q2_s = Q2[s]
     W_s = W_s[~np.isnan(W_s)]
     Q2_s = Q2_s[~np.isnan(Q2_s)]
-    y, bins, _ = axs_WQ2[0, i].hist(W_s, bins=100, range=(0.8, 1.1), color='darkblue',
-                                    histtype='step', fill=True, density=True)
+    h, b, _ = axs_WQ2[0, i].hist(W_s, bins=500, range=(0.0, 2.2), color='darkblue',
+                                 histtype='step', fill=True)
+
+    y, bins = np.histogram(W_s, range=(0.8, 1.1), bins=500)
     x = (bins[:-1] + bins[1:]) / 2
     popt, pcov = curve_fit(gaus, x, y, p0=[1.0, 1.0, 1.0], maxfev=8000)
+    popt[0] = max(h)
     axs_WQ2[0, i].plot(x, gaus(x, *popt), "red",
                        label="$\mu$ = {0:.4f}\n$\sigma$ = {1:.4f}".format(popt[1], popt[2]), linewidth=2)
     axs_WQ2[0, i].legend()
 
-    axs_WQ2[1, i].hist2d(W_s, Q2_s, bins=100, range=((0.8, 1.1), (0, 1.0)))
+    axs_WQ2[1, i].hist2d(W_s, Q2_s, bins=500, range=((0.0, 2.2), (0, 1.0)))
     axs_WQ2[0, i].set_title("Sector {0:d} W vs $Q^2$".format(s))
 
-
-fig_WQ22, axs_WQ22 = plt.subplots(2, 2, sharey='row', figsize=(16, 10))
-W_s = W[0]
-Q2_s = Q2[0]
-W_s = W_s[~np.isnan(W_s)]
-Q2_s = Q2_s[~np.isnan(Q2_s)]
-y, bins, _ = axs_WQ22[0, 0].hist(W_s, bins=100, range=(0.8, 1.1), color='darkblue',
-                                 histtype='step', fill=True, density=True)
-x = (bins[:-1] + bins[1:]) / 2
-popt, pcov = curve_fit(gaus, x, y, p0=[1.0, 1.0, 1.0])
-axs_WQ22[0, 0].plot(x, gaus(x, *popt), "red",
-                    label="$\mu$ = {0:.4f}\n$\sigma$ = {1:.4f}".format(popt[1], popt[2]), linewidth=2)
-axs_WQ22[0, 0].legend()
-
-axs_WQ22[1, 0].hist2d(W_s, Q2_s, bins=100, range=((0.8, 1.1), (0, 1.0)))
-axs_WQ22[0, 0].set_title("No Sector W vs $Q^2$".format(s))
-##########################
+# %%
+fig_WQ22, axs_WQ22 = plt.subplots(2, sharex='col', figsize=(16, 10))
 W_s = W[:]
 Q2_s = Q2[:]
 W_s = W_s[~np.isnan(W_s)]
 Q2_s = Q2_s[~np.isnan(Q2_s)]
-y, bins, _ = axs_WQ22[0, 1].hist(W_s, bins=100, range=(0.8, 1.1), color='darkblue',
-                                 histtype='step', fill=True, density=True)
+h, b, _ = axs_WQ22[0].hist(W_s, bins=500, range=(0.0, 2.2), color='darkblue',
+                           histtype='step', fill=True)
+y, bins = np.histogram(W_s, range=(0.8, 1.1), bins=500, density=True)
 x = (bins[:-1] + bins[1:]) / 2
 popt, pcov = curve_fit(gaus, x, y, p0=[1.0, 1.0, 1.0])
-axs_WQ22[0, 1].plot(x, gaus(x, *popt), "red",
-                    label="$\mu$ = {0:.4f}\n$\sigma$ = {1:.4f}".format(popt[1], popt[2]), linewidth=2)
-axs_WQ22[0, 1].legend()
+popt[0] = max(h)
+axs_WQ22[0].plot(x, gaus(x, *popt), "red",
+                 label="$\mu$ = {0:.4f}\n$\sigma$ = {1:.4f}".format(popt[1], popt[2]), linewidth=2)
+axs_WQ22[0].legend()
 
-axs_WQ22[1, 1].hist2d(W_s, Q2_s, bins=100, range=((0.8, 1.1), (0, 1.0)))
-axs_WQ22[0, 1].set_title("All Sectors W vs $Q^2$".format(s))
+axs_WQ22[1].hist2d(W_s, Q2_s, bins=500, range=((0.0, 2.2), (0, 1.0)))
+axs_WQ22[0].set_title("All Sectors W vs $Q^2$".format(s))
 
 fig_WQ2.savefig("WvsQ2_bySector.pdf")
 fig_WQ22.savefig("WvsQ2.pdf")
-
-
-end = time.time()
-print((end - start), "Sec")
-print(((end - start) / events), "time/event")
-print((events / (end - start)), "Hz")
