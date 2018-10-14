@@ -2,6 +2,11 @@ cmake_minimum_required(VERSION 3.5)
 project(hipoio)
 set(VERSION 0.0.1)
 
+list(APPEND CMAKE_PREFIX_PATH $ENV{ROOTSYS})
+message(STATUS "ROOTSYS: " $ENV{ROOTSYS})
+find_package(ROOT REQUIRED COMPONENTS RIO Net)
+include(${ROOT_USE_FILE})
+
 set(CMAKE_MODULE_PATH
    ${CMAKE_MODULE_PATH}
    ${PROJECT_SOURCE_DIR}/cmake
@@ -30,7 +35,7 @@ set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} ${EXTRA_FLAGS}" )
 add_library(hipopy MODULE ${_hipopy})
 python_extension_module(hipopy)
 
-target_link_libraries(hipopy hipocpp ${LZ4_LIBRARY} ${PYTHON_LIBRARIES})
+target_link_libraries(hipopy hipocpp ${LZ4_LIBRARY} ${PYTHON_LIBRARIES} ${ROOT_LIBRARIES})
 
 install(TARGETS hipopy
         LIBRARY DESTINATION lib)
