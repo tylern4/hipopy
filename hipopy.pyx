@@ -400,7 +400,7 @@ cdef class LorentzVector:
     cdef double E = self.c_TLorentzVector.E() - other.c_TLorentzVector.E()
     return LorentzVector(X, Y, Z, energy=E)
   def __str__(self):
-    return "Px {0: 0.2f} | Py {1: 0.2f} | Pz {2: 0.2f} | E {3: 0.2f}".format(self.px,self.py ,self.pz, self.energy)
+    return "Px {0: 0.2f} | Py {1: 0.2f} | Pz {2: 0.2f} | E {3: 0.2f}".format(self.Px,self.Py ,self.Pz, self.E)
   def __repr__(self):
     return self.__str__()
   def MomentumVec(LorentzVector self):
@@ -585,6 +585,9 @@ cdef class Particle:
   @property
   def FourVector(Particle self):
     return self.FourVector
+  @property
+  def Vertex(Particle self):
+    return self.Vertex
   @property
   def pid(Particle self):
     return self.pid
