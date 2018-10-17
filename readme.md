@@ -14,6 +14,8 @@ make install
 ```
 
 ## Basic Example
+https://github.com/tylern4/hipopy/blob/master/examples/WvsQ2.ipynb
+
 ```python
 #!/usr/bin/env python
 from __future__ import print_function
