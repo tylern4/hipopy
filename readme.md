@@ -1,6 +1,4 @@
 [![Travis Build Status](https://travis-ci.org/tylern4/hipopy.svg?branch=master)](https://travis-ci.org/tylern4/hipopy)
-[![pipeline status](https://gitlab.com/tylern4/hipopy/badges/master/pipeline.svg)](https://gitlab.com/tylern4/hipopy/commits/master)
-
 
 ## Build
 ```shell
@@ -12,6 +10,19 @@ cmake ..
 make -j$(nproc)
 make install
 ```
+
+## Building on the farm
+```shell
+git clone https://github.com/tylern4/hipopy.git
+cd hipopy
+git clone https://github.com/lz4/lz4.git
+cd lz4
+make
+cd ..
+python setup.py build
+```
+
+hipopy.so gets built in build/lib.linux-version/hipopy.so, add this path to PYTHONPATH environment to get it working with python.
 
 ## Basic Example
 https://github.com/tylern4/hipopy/blob/master/examples/WvsQ2.ipynb
