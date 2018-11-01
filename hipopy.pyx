@@ -1,10 +1,14 @@
 # cython: profile=True
 # distutils: language = c++
+# cython: boundscheck=False
+
+cimport cython
 from libcpp.vector cimport vector
 from libcpp.string cimport string
 from libcpp.map cimport map
 from libcpp.utility cimport pair
 from libcpp cimport bool
+from cython.view cimport array as cvarray
 
 from collections import defaultdict
 
@@ -694,6 +698,7 @@ cdef class Particle:
   def PseudoRapidity(Particle self):
     return self.FourVector.PseudoRapidity
 
+
 cdef class Event:
   cdef:
     hipo_reader hiporeader
@@ -728,6 +733,7 @@ cdef class Event:
     float_node _traj_x, _traj_y, _traj_z, _traj_cx, _traj_cy, _traj_cz
 
     public list particles, ids
+    public double[:,:] ec, cc, tof
 
   def __cinit__(Event self, hipo_reader reader):
     self.hiporeader = reader
@@ -747,6 +753,7 @@ cdef class Event:
     self._charge = reader.getInt8Node("REC::Particle", "charge")
     self._beta = reader.getFloatNode("REC::Particle", "beta")
     #REC::Calorimeter
+    self.ec = cvarray(shape=(40,4), itemsize=sizeof(double), format="d")
     self._ec_pindex = reader.getInt16Node(u"REC::Calorimeter", u"pindex")
     self._ec_detector = reader.getInt8Node(u"REC::Calorimeter", u"detector")
     self._ec_sector = reader.getInt8Node(u"REC::Calorimeter", u"sector")
@@ -761,6 +768,7 @@ cdef class Event:
     self._ec_lv = reader.getFloatNode(u"REC::Calorimeter", u"lv")
     self._ec_lw = reader.getFloatNode(u"REC::Calorimeter", u"lw")
     #REC::Cherenkov
+    self.cc = cvarray(shape=(40,2), itemsize=sizeof(double), format="d")
     self._cc_pindex = reader.getInt16Node(u"REC::Cherenkov", u"pindex")
     self._cc_detector = reader.getInt8Node(u"REC::Cherenkov", u"detector")
     self._cc_sector = reader.getInt8Node(u"REC::Cherenkov", u"sector")
@@ -783,6 +791,7 @@ cdef class Event:
     self._ft_radius = reader.getFloatNode(u"REC::ForwardTagger", u"radius")
     self._ft_size = reader.getInt16Node(u"REC::ForwardTagger", u"size")
     #REC::Scintillator
+    self.tof = cvarray(shape=(40,4), itemsize=sizeof(double), format="d")
     self._sc_pindex = reader.getInt16Node(u"REC::Scintillator", u"pindex")
     self._sc_detector = reader.getInt8Node(u"REC::Scintillator", u"detector")
     self._sc_sector = reader.getInt8Node(u"REC::Scintillator", u"sector")
@@ -838,24 +847,75 @@ cdef class Event:
       self.ids[i] = self._pid[i]
       self.particles[i] = Particle(self._px[i], self._py[i], self._pz[i], self._pid[i],
                           self._vx[i], self._vy[i], self._vz[i], self._charge[i], self._beta[i])
-  cdef void loadDetectors(Event self):
+
+  cdef void loadEC(Event self):
     cdef:
-      int l_ec = len(self._ec_pindex)
-      int l_cc = len(self._cc_pindex)
-      int l_ft = len(self._ft_pindex)
-      int l_sc = len(self._sc_pindex)
-      int l_track = len(self._track_pindex)
-      int l_traj = len(self._traj_pindex)
-      int i,p = 0
-    for i in xrange(0, l_ec):
-      p += 1
-    for i in xrange(0, l_cc):
-      p += 1
-    for i in xrange(0, l_ft):
-      p += 1
-    for i in xrange(0, l_sc):
-      p += 1
-    for i in xrange(0, l_track):
-      p += 1
-    for i in xrange(0, l_traj):
-      p += 1
+      double pcal = 0.0
+      double einner = 0.0
+      double eouter = 0.0
+      int i,k = 0
+    for i in range(len(self._pid)):
+      for k in range(len(self._ec_pindex)):
+        pindex = self._ec_pindex[k]
+        detector = self._ec_detector[k]
+        if pindex == i and detector == 7:
+          layer = self._ec_layer[k]
+          energy = self._ec_energy[k]
+          if(layer == 1):
+            pcal += energy
+          elif(layer == 4):
+            einner += energy
+          elif(layer == 7):
+            eouter += energy
+        self.ec[i][0] = pcal
+        self.ec[i][1] = einner
+        self.ec[i][2] = eouter
+        self.ec[i][3] = pcal+einner+eouter
+
+  cdef void loadTOF(Event self):
+    cdef:
+      double ftof_sc_t = np.nan
+      double ftof_sc_r = np.nan
+      double ctof_sc_t = np.nan
+      double ctof_sc_r = np.nan
+      int i,k = 0
+    for i in range(len(self._pid)):
+      for k in range(len(self._ec_pindex)):
+        pindex = self._sc_pindex[k]
+        detector = self._sc_detector[k]
+        if pindex == i and detector == 12:
+          layer = self._sc_layer[k]
+          if(layer != 1):
+            ftof_sc_t = self._sc_time[k]
+            ftof_sc_r = self._sc_path[k]
+          elif pindex == i and detector == 4:
+            ctof_sc_t = self._sc_time[k]
+            ctof_sc_r = self._sc_path[k]
+
+        self.tof[i][0] = ftof_sc_t
+        self.tof[i][1] = ftof_sc_r
+        self.tof[i][2] = ctof_sc_t
+        self.tof[i][3] = ctof_sc_r
+
+
+  cdef void loadCC(Event self):
+    cdef:
+      double nphe_LTCC = np.nan
+      double nphe_HTCC = np.nan
+      int i,k = 0
+    for i in range(len(self._pid)):
+      for k in range(len(self._ec_pindex)):
+        pindex = self._cc_pindex[k]
+        detector = self._cc_detector[k]
+        if pindex == i and detector == 15:
+          nphe_HTCC = self._cc_nphe[k]
+        elif pindex == i and detector == 16:
+          nphe_LTCC = self._cc_nphe[k]
+
+      self.cc[i][0] = nphe_LTCC
+      self.cc[i][1] = nphe_HTCC
+
+  cdef void loadDetectors(Event self):
+    self.loadEC()
+    self.loadTOF()
+    self.loadCC()

@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.5)
 
-set(CMAKE_CXX_STANDARD 14)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_FLAGS "${ROOT_CXX_FLAGS}")
+
 find_package(LZ4 REQUIRED)
 add_definitions(-D__LZ4__)
 
