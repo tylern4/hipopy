@@ -732,7 +732,7 @@ cdef class Event:
     short_node _traj_pindex, _traj_detId
     float_node _traj_x, _traj_y, _traj_z, _traj_cx, _traj_cy, _traj_cz
 
-    public list particles, ids
+    public list particle, ids
     public double[:,:] ec, cc, tof
 
   def __cinit__(Event self, hipo_reader reader):
@@ -753,7 +753,7 @@ cdef class Event:
     self._charge = reader.getInt8Node("REC::Particle", "charge")
     self._beta = reader.getFloatNode("REC::Particle", "beta")
     #REC::Calorimeter
-    self.ec = cvarray(shape=(40,4), itemsize=sizeof(double), format="d")
+    self.ec = cvarray(shape=(20,4), itemsize=sizeof(double), format="d")
     self._ec_pindex = reader.getInt16Node(u"REC::Calorimeter", u"pindex")
     self._ec_detector = reader.getInt8Node(u"REC::Calorimeter", u"detector")
     self._ec_sector = reader.getInt8Node(u"REC::Calorimeter", u"sector")
@@ -768,7 +768,7 @@ cdef class Event:
     self._ec_lv = reader.getFloatNode(u"REC::Calorimeter", u"lv")
     self._ec_lw = reader.getFloatNode(u"REC::Calorimeter", u"lw")
     #REC::Cherenkov
-    self.cc = cvarray(shape=(40,2), itemsize=sizeof(double), format="d")
+    self.cc = cvarray(shape=(20,2), itemsize=sizeof(double), format="d")
     self._cc_pindex = reader.getInt16Node(u"REC::Cherenkov", u"pindex")
     self._cc_detector = reader.getInt8Node(u"REC::Cherenkov", u"detector")
     self._cc_sector = reader.getInt8Node(u"REC::Cherenkov", u"sector")
@@ -791,7 +791,7 @@ cdef class Event:
     self._ft_radius = reader.getFloatNode(u"REC::ForwardTagger", u"radius")
     self._ft_size = reader.getInt16Node(u"REC::ForwardTagger", u"size")
     #REC::Scintillator
-    self.tof = cvarray(shape=(40,4), itemsize=sizeof(double), format="d")
+    self.tof = cvarray(shape=(20,4), itemsize=sizeof(double), format="d")
     self._sc_pindex = reader.getInt16Node(u"REC::Scintillator", u"pindex")
     self._sc_detector = reader.getInt8Node(u"REC::Scintillator", u"detector")
     self._sc_sector = reader.getInt8Node(u"REC::Scintillator", u"sector")
@@ -832,7 +832,8 @@ cdef class Event:
   def __next__(Event self):
     if self.hiporeader.c_next():
       self.loadParts()
-      self.loadDetectors()
+      self.loadEC()
+      #self.loadDetectors()
       return self
     else:
       raise StopIteration
@@ -841,13 +842,12 @@ cdef class Event:
       self.run = self._run[0]
     cdef int l = len(self)
     cdef int i = 0
-    self.particles = [None] * l
+    self.particle = [None] * l
     self.ids = [None] * l
     for i in xrange(0, l):
       self.ids[i] = self._pid[i]
-      self.particles[i] = Particle(self._px[i], self._py[i], self._pz[i], self._pid[i],
+      self.particle[i] = Particle(self._px[i], self._py[i], self._pz[i], self._pid[i],
                           self._vx[i], self._vy[i], self._vz[i], self._charge[i], self._beta[i])
-
   cdef void loadEC(Event self):
     cdef:
       double pcal = 0.0
@@ -884,19 +884,16 @@ cdef class Event:
         pindex = self._sc_pindex[k]
         detector = self._sc_detector[k]
         if pindex == i and detector == 12:
-          layer = self._sc_layer[k]
-          if(layer != 1):
-            ftof_sc_t = self._sc_time[k]
-            ftof_sc_r = self._sc_path[k]
-          elif pindex == i and detector == 4:
-            ctof_sc_t = self._sc_time[k]
-            ctof_sc_r = self._sc_path[k]
+          ftof_sc_t = self._sc_time[k]
+          ftof_sc_r = self._sc_path[k]
+        elif pindex == i and detector == 4:
+          ctof_sc_t = self._sc_time[k]
+          ctof_sc_r = self._sc_path[k]
 
-        self.tof[i][0] = ftof_sc_t
-        self.tof[i][1] = ftof_sc_r
-        self.tof[i][2] = ctof_sc_t
-        self.tof[i][3] = ctof_sc_r
-
+      self.tof[i][0] = ftof_sc_t
+      self.tof[i][1] = ftof_sc_r
+      self.tof[i][2] = ctof_sc_t
+      self.tof[i][3] = ctof_sc_r
 
   cdef void loadCC(Event self):
     cdef:

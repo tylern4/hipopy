@@ -20,13 +20,13 @@ namespace hipo {
  */
 reader::reader() {
   printWarning();
-  hipoutils.printLogo();
+  // hipoutils.printLogo();
   isRandomAccess = false;
 }
 
 reader::reader(bool ra) {
   printWarning();
-  hipoutils.printLogo();
+  // hipoutils.printLogo();
   isRandomAccess = ra;
 }
 /**
