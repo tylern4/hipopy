@@ -19,29 +19,59 @@ cdef dict get_id = {'PROTON': 2212, 'NEUTRON': 2112, 'PIP': 211, 'PIM': -211, 'P
 cdef dict part_mass = {11: 0.000511, 211: 0.13957, -211: 0.13957, 2212: 0.93827, 2112: 0.939565, 321: 0.493667, -321: 0.493667, 22: 0}
 
 cdef extern from "hipo/node.h" namespace "hipo":
-    cdef cppclass node[T]:
-      node() except +
-      node(int, int) except +
-      T getValue(int)
-      void   reset()
-      void   show()
-      int    getLength()
-      char  *getAddress()
-      int    getBytesLength()
-      void   setLength(int)
-      void   setAddress(char *)
+  cdef cppclass node[T]:
+    node() except +
+    node(int, int) except +
+    T getValue(int)
+    void  reset()
+    void  show()
+    int   getLength()
+    char  *getAddress()
+    int   getBytesLength()
+    void  setLength(int)
+    void  setAddress(char *)
 
 cdef extern from "hipo/reader.h" namespace "hipo":
-    cdef cppclass reader:
-      reader() except +
-      reader(bool) except +
-      vector[string] getDictionary()
-      void open(char*)
-      int getRecordCount()
-      bool next()
-      bool  isOpen()
-      void  showInfo()
-      node *getBranch[T](char*,char*)
+  cdef cppclass reader:
+    reader() except +
+    reader(bool) except +
+    vector[string] getDictionary()
+    void open(char*)
+    int getRecordCount()
+    bool next()
+    bool isOpen()
+    void showInfo()
+    node *getBranch[T](char*,char*)
+
+cdef extern from "clas12/clas12event.h" namespace "clas12":
+  cdef cppclass clas12event:
+    clas12event() except +
+    void init(reader&)
+    double getStartTime()
+    double getTime(int, int)
+    double getEnergy(int, int)
+    double getPath(int, int)
+    double getBeta(int, int)
+
+
+cdef class clas12_event:
+    """clas12_event based on clas12::clas12event class"""
+    cdef clas12event*c_event
+    def __cinit__(self):
+      self.c_event = new clas12event()
+    def __cinit__(self, hipo_reader r):
+      self.c_event = new clas12event()
+      self.c_event.init(r._creader()[0])
+    def init(self, hipo_reader r):
+      self.c_event.init(r._creader()[0])
+    def getTime(self, int detector, int index):
+      return self.c_event.getTime(detector,index)
+    def getEnergy(self, int detector, int index):
+      return self.c_event.getEnergy(detector,index)
+    def getPath(self, int detector , int index):
+      return self.c_event.getPath(detector,index)
+    def getBeta(self, int detector, int index):
+      return self.c_event.getBeta(detector,index)
 
 cdef extern from "TLorentzVector.h":
   cdef cppclass TLorentzVector:
@@ -240,6 +270,9 @@ cdef class hipo_reader:
     """Initialize hipo_reader with a file"""
     self.c_reader = new reader()
     self.open(filename)
+
+  cdef reader* _creader(self):
+      return self.c_reader
 
   def __str__(self):
     return self.jsonString()
@@ -697,45 +730,23 @@ cdef class Particle:
 cdef class Event:
   cdef:
     hipo_reader hiporeader
+    clas12_event c12event
     int run
     #RUN::config
     #REC::Particle
     int_node _run, _pid, _event
     char_node _charge, _pindex
     float_node _px, _py, _pz, _vx, _vy, _vz, _beta, _torus, _solenoid
-    #REC::Calorimeter
-    short_node _ec_pindex
-    char_node _ec_detector, _ec_sector, _ec_layer
-    float_node _ec_energy, _ec_time, _ec_path, _ec_x, _ec_y, _ec_z, _ec_lu, _ec_lv, _ec_lw
-    #REC::Cherenkov
-    short_node _cc_pindex
-    char_node _cc_detector, _cc_sector
-    float_node _cc_nphe, _cc_time, _cc_path, _cc_theta, _cc_phi
-    #REC::ForwardTagger
-    short_node _ft_pindex, _ft_size
-    char_node _ft_detector
-    float_node _ft_energy, _ft_time, _ft_path, _ft_x, _ft_y, _ft_z, _ft_dx, _ft_dy, _ft_radius
-    #REC::Scintillator
-    short_node _sc_pindex, _sc_component
-    char_node _sc_detector, _sc_sector, _sc_layer
-    float_node _sc_energy, _sc_time, _sc_path
-    #REC::Track
-    short_node _track_pindex, _track_NDF, _track_NDF_nomm
-    char_node _track_detector, _track_sector
-    float_node _track_chi2, _track_chi2_nomm
-    #REC::Traj
-    short_node _traj_pindex, _traj_detId
-    float_node _traj_x, _traj_y, _traj_z, _traj_cx, _traj_cy, _traj_cz
-
     public list particles, ids
 
   def __cinit__(Event self, hipo_reader reader):
     self.hiporeader = reader
+    self.c12event = clas12_event(reader)
     #RUN::config
-    self._run = reader.getIntNode(u"RUN::config", u"run")
-    self._event = reader.getIntNode(u"RUN::config", u"event")
-    self._torus = reader.getFloatNode(u"RUN::config", u"torus")
-    self._solenoid = reader.getFloatNode(u"RUN::config", u"solenoid")
+    self._run = reader.getIntNode("RUN::config", "run")
+    self._event = reader.getIntNode("RUN::config", "event")
+    self._torus = reader.getFloatNode("RUN::config", "torus")
+    self._solenoid = reader.getFloatNode("RUN::config", "solenoid")
     #REC::Particle
     self._pid = reader.getIntNode("REC::Particle", "pid")
     self._px = reader.getFloatNode("REC::Particle", "px")
@@ -746,69 +757,6 @@ cdef class Event:
     self._vz = reader.getFloatNode("REC::Particle", "vz")
     self._charge = reader.getInt8Node("REC::Particle", "charge")
     self._beta = reader.getFloatNode("REC::Particle", "beta")
-    #REC::Calorimeter
-    self._ec_pindex = reader.getInt16Node(u"REC::Calorimeter", u"pindex")
-    self._ec_detector = reader.getInt8Node(u"REC::Calorimeter", u"detector")
-    self._ec_sector = reader.getInt8Node(u"REC::Calorimeter", u"sector")
-    self._ec_layer = reader.getInt8Node(u"REC::Calorimeter", u"layer")
-    self._ec_energy = reader.getFloatNode(u"REC::Calorimeter", u"energy")
-    self._ec_time = reader.getFloatNode(u"REC::Calorimeter", u"time")
-    self._ec_path = reader.getFloatNode(u"REC::Calorimeter", u"path")
-    self._ec_x = reader.getFloatNode(u"REC::Calorimeter", u"x")
-    self._ec_y = reader.getFloatNode(u"REC::Calorimeter", u"y")
-    self._ec_z = reader.getFloatNode(u"REC::Calorimeter", u"z")
-    self._ec_lu = reader.getFloatNode(u"REC::Calorimeter", u"lu")
-    self._ec_lv = reader.getFloatNode(u"REC::Calorimeter", u"lv")
-    self._ec_lw = reader.getFloatNode(u"REC::Calorimeter", u"lw")
-    #REC::Cherenkov
-    self._cc_pindex = reader.getInt16Node(u"REC::Cherenkov", u"pindex")
-    self._cc_detector = reader.getInt8Node(u"REC::Cherenkov", u"detector")
-    self._cc_sector = reader.getInt8Node(u"REC::Cherenkov", u"sector")
-    self._cc_nphe = reader.getFloatNode(u"REC::Cherenkov", u"nphe")
-    self._cc_time = reader.getFloatNode(u"REC::Cherenkov", u"time")
-    self._cc_path = reader.getFloatNode(u"REC::Cherenkov", u"path")
-    self._cc_theta = reader.getFloatNode(u"REC::Cherenkov", u"theta")
-    self._cc_phi = reader.getFloatNode(u"REC::Cherenkov", u"phi")
-    #REC::ForwardTagger
-    self._ft_pindex = reader.getInt16Node(u"REC::ForwardTagger", u"pindex")
-    self._ft_detector = reader.getInt8Node(u"REC::ForwardTagger", u"detector")
-    self._ft_energy = reader.getFloatNode(u"REC::ForwardTagger", u"energy")
-    self._ft_time = reader.getFloatNode(u"REC::ForwardTagger", u"time")
-    self._ft_path = reader.getFloatNode(u"REC::ForwardTagger", u"path")
-    self._ft_x = reader.getFloatNode(u"REC::ForwardTagger", u"x")
-    self._ft_y = reader.getFloatNode(u"REC::ForwardTagger", u"y")
-    self._ft_z = reader.getFloatNode(u"REC::ForwardTagger", u"z")
-    self._ft_dx = reader.getFloatNode(u"REC::ForwardTagger", u"dx")
-    self._ft_dy = reader.getFloatNode(u"REC::ForwardTagger", u"dy")
-    self._ft_radius = reader.getFloatNode(u"REC::ForwardTagger", u"radius")
-    self._ft_size = reader.getInt16Node(u"REC::ForwardTagger", u"size")
-    #REC::Scintillator
-    self._sc_pindex = reader.getInt16Node(u"REC::Scintillator", u"pindex")
-    self._sc_detector = reader.getInt8Node(u"REC::Scintillator", u"detector")
-    self._sc_sector = reader.getInt8Node(u"REC::Scintillator", u"sector")
-    self._sc_layer = reader.getInt8Node(u"REC::Scintillator", u"layer")
-    self._sc_component = reader.getInt16Node(u"REC::Scintillator", u"component")
-    self._sc_energy = reader.getFloatNode(u"REC::Scintillator", u"energy")
-    self._sc_time = reader.getFloatNode(u"REC::Scintillator", u"time")
-    self._sc_path = reader.getFloatNode(u"REC::Scintillator", u"path")
-    #REC::Track
-    self._track_pindex = reader.getInt16Node(u"REC::Track", u"pindex")
-    self._track_detector = reader.getInt8Node(u"REC::Track", u"detector")
-    self._track_sector = reader.getInt8Node(u"REC::Track", u"sector")
-    self._track_chi2 = reader.getFloatNode(u"REC::Track", u"chi2")
-    self._track_NDF = reader.getInt16Node(u"REC::Track", u"NDF")
-    self._track_chi2_nomm = reader.getFloatNode(u"REC::Track", u"chi2_nomm")
-    self._track_NDF_nomm = reader.getInt16Node(u"REC::Track", u"NDF_nomm")
-    #REC::Traj
-    self._traj_pindex = reader.getInt16Node(u"REC::Traj", u"pindex")
-    self._traj_detId = reader.getInt16Node(u"REC::Traj", u"detId")
-    self._traj_x = reader.getFloatNode(u"REC::Traj", u"x")
-    self._traj_y = reader.getFloatNode(u"REC::Traj", u"y")
-    self._traj_z = reader.getFloatNode(u"REC::Traj", u"z")
-    self._traj_cx = reader.getFloatNode(u"REC::Traj", u"cx")
-    self._traj_cy = reader.getFloatNode(u"REC::Traj", u"cy")
-    self._traj_cz = reader.getFloatNode(u"REC::Traj", u"cz")
-
   def __len__(Event self):
     return self._pid.getLength()
   def __iter__(Event self):
@@ -816,14 +764,13 @@ cdef class Event:
   def next(Event self):
     if self.hiporeader.c_next():
       self.loadParts()
-      self.loadDetectors()
       return self
     else:
       raise StopIteration
   def __next__(Event self):
     if self.hiporeader.c_next():
+      #print(self.c12event)
       self.loadParts()
-      self.loadDetectors()
       return self
     else:
       raise StopIteration
@@ -838,24 +785,3 @@ cdef class Event:
       self.ids[i] = self._pid[i]
       self.particles[i] = Particle(self._px[i], self._py[i], self._pz[i], self._pid[i],
                           self._vx[i], self._vy[i], self._vz[i], self._charge[i], self._beta[i])
-  cdef void loadDetectors(Event self):
-    cdef:
-      int l_ec = len(self._ec_pindex)
-      int l_cc = len(self._cc_pindex)
-      int l_ft = len(self._ft_pindex)
-      int l_sc = len(self._sc_pindex)
-      int l_track = len(self._track_pindex)
-      int l_traj = len(self._traj_pindex)
-      int i,p = 0
-    for i in xrange(0, l_ec):
-      p += 1
-    for i in xrange(0, l_cc):
-      p += 1
-    for i in xrange(0, l_ft):
-      p += 1
-    for i in xrange(0, l_sc):
-      p += 1
-    for i in xrange(0, l_track):
-      p += 1
-    for i in xrange(0, l_traj):
-      p += 1

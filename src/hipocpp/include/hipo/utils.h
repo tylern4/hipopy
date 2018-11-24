@@ -14,9 +14,9 @@
 #ifndef UTILS_H
 #define UTILS_H
 
-#include <iostream>
-#include <cstdlib>
 #include <cstdio>
+#include <cstdlib>
+#include <iostream>
 #include <string>
 #include <vector>
 
@@ -24,29 +24,25 @@ namespace hipo {
 
   class utils {
   private:
-
   public:
     utils();
     ~utils();
-    static void tokenize(const std::string& str,
-			                   std::vector<std::string>& tokens,
-			                   const std::string& delimiters = " ");
+    static void tokenize(const std::string& str, std::vector<std::string>& tokens,
+                         const std::string& delimiters = " ");
 
-    static std::string substring(const std::string &str,
-                                 const char *start_delim,
-                                 const char *end_delim, int order);
+    static std::string substring(const std::string& str, const char* start_delim,
+                                 const char* end_delim, int order);
 
-    static int findposition(const std::string &str,
-                            const char *delim, int order);
+    static int findposition(const std::string& str, const char* delim, int order);
 
     static void printLogo();
 
     static std::string getHeader();
     static std::string getFileHeader();
-    static std::string getFileTrailer(const char *code);
+    static std::string getFileTrailer(const char* code);
     static std::string getSConstruct();
   };
 
-}
+} // namespace hipo
 
 #endif /* UTILS_H */

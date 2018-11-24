@@ -7,6 +7,7 @@ add_definitions(-D__LZ4__)
 
 add_library(hipocpp SHARED
   src/data.cpp
+  src/bank.cpp
   src/dictionary.cpp
   src/event.cpp
   src/node.cpp
