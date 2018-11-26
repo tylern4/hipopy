@@ -16,6 +16,8 @@ import json
 
 cdef dict get_id = {'PROTON': 2212, 'NEUTRON': 2112, 'PIP': 211, 'PIM': -211, 'PI0': 111, 'KP': 321, 'KM': -321, 'PHOTON': 22, 'ELECTRON': 11}
 
+detector = {'FTOF':12, 'FTOF1A':121, 'FTOF1B':122}
+
 cdef dict part_mass = {11: 0.000511, 211: 0.13957, -211: 0.13957, 2212: 0.93827, 2112: 0.939565, 321: 0.493667, -321: 0.493667, 22: 0}
 
 cdef extern from "hipo/node.h" namespace "hipo":
@@ -62,15 +64,15 @@ cdef class clas12_event:
     def __cinit__(self, hipo_reader r):
       self.c_event = new clas12event()
       self.c_event.init(r._creader()[0])
-    def init(self, hipo_reader r):
+    cdef void init(self, hipo_reader r):
       self.c_event.init(r._creader()[0])
-    def getTime(self, int detector, int index):
+    cdef double getTime(self, int detector, int index):
       return self.c_event.getTime(detector,index)
-    def getEnergy(self, int detector, int index):
+    cdef double getEnergy(self, int detector, int index):
       return self.c_event.getEnergy(detector,index)
-    def getPath(self, int detector , int index):
+    cdef double getPath(self, int detector , int index):
       return self.c_event.getPath(detector,index)
-    def getBeta(self, int detector, int index):
+    cdef double getBeta(self, int detector, int index):
       return self.c_event.getBeta(detector,index)
 
 cdef extern from "TLorentzVector.h":
@@ -730,23 +732,21 @@ cdef class Particle:
 cdef class Event:
   cdef:
     hipo_reader hiporeader
-    clas12_event c12event
+    clas12_event clas12event
     int run
-    #RUN::config
-    #REC::Particle
     int_node _run, _pid, _event
     char_node _charge, _pindex
     float_node _px, _py, _pz, _vx, _vy, _vz, _beta, _torus, _solenoid
-    public list particles, ids
+    public list particle, ids
 
   def __cinit__(Event self, hipo_reader reader):
     self.hiporeader = reader
-    self.c12event = clas12_event(reader)
+    self.clas12event = clas12_event(reader)
     #RUN::config
-    self._run = reader.getIntNode("RUN::config", "run")
-    self._event = reader.getIntNode("RUN::config", "event")
-    self._torus = reader.getFloatNode("RUN::config", "torus")
-    self._solenoid = reader.getFloatNode("RUN::config", "solenoid")
+    self._run = reader.getIntNode(u"RUN::config", u"run")
+    self._event = reader.getIntNode(u"RUN::config", u"event")
+    self._torus = reader.getFloatNode(u"RUN::config", u"torus")
+    self._solenoid = reader.getFloatNode(u"RUN::config", u"solenoid")
     #REC::Particle
     self._pid = reader.getIntNode("REC::Particle", "pid")
     self._px = reader.getFloatNode("REC::Particle", "px")
@@ -769,7 +769,6 @@ cdef class Event:
       raise StopIteration
   def __next__(Event self):
     if self.hiporeader.c_next():
-      #print(self.c12event)
       self.loadParts()
       return self
     else:
@@ -779,9 +778,17 @@ cdef class Event:
       self.run = self._run[0]
     cdef int l = len(self)
     cdef int i = 0
-    self.particles = [None] * l
+    self.particle = [None] * l
     self.ids = [None] * l
     for i in xrange(0, l):
       self.ids[i] = self._pid[i]
-      self.particles[i] = Particle(self._px[i], self._py[i], self._pz[i], self._pid[i],
+      self.particle[i] = Particle(self._px[i], self._py[i], self._pz[i], self._pid[i],
                           self._vx[i], self._vy[i], self._vz[i], self._charge[i], self._beta[i])
+  def getTime(self, int detector, int index):
+    return self.clas12event.getTime(detector,index)
+  def getEnergy(self, int detector, int index):
+    return self.clas12event.getEnergy(detector,index)
+  def getPath(self, int detector , int index):
+    return self.clas12event.getPath(detector,index)
+  def getBeta(self, int detector, int index):
+    return self.clas12event.getBeta(detector,index)

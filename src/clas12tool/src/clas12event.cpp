@@ -15,21 +15,33 @@ namespace clas12 {
     clas12tof.init(banks[3].c_str(), r);
   }
 
+  int   clas12event::getPid(int index) { return clas12particle.getPid(index); }
+  float clas12event::getPx(int index) { return clas12particle.getPx(index); }
+  float clas12event::getPy(int index) { return clas12particle.getPy(index); }
+  float clas12event::getPz(int index) { return clas12particle.getPz(index); }
+
   double clas12event::getStartTime() { return clas12header.getStartTime(); }
 
   double clas12event::getTime(int detector, int pindex) {
     switch (detector) {
     case 121:
-      return clas12tof.getTime(clas12::FTOF, 1, pindex);
-      break;
+      if (clas12tof.getTime(clas12::FTOF, 1, pindex) != 0.0)
+        return clas12tof.getTime(clas12::FTOF, 1, pindex);
+      else
+        return std::nan("-99");
     case 122:
-      return clas12tof.getTime(clas12::FTOF, 2, pindex);
-      break;
+      if (clas12tof.getTime(clas12::FTOF, 2, pindex) != 0.0)
+        return clas12tof.getTime(clas12::FTOF, 2, pindex);
+      else
+        return std::nan("-99");
     case 7:
-      return clas12calorimeter.getTime(clas12::EC, 1, pindex);
-      break;
+      if (clas12tof.getTime(clas12::EC, 1, pindex) != 0.0)
+        return clas12tof.getTime(clas12::EC, 1, pindex);
+      else
+        return std::nan("-99");
     default:
-      std::cerr << "detector: " << detector << "does not have bank Time." << std::endl;
+      std::cerr << "detector: " << detector << " does not have bank Time." << std::endl;
+      return std::nan("-99");
     }
     return std::nan("-99");
   }
@@ -57,7 +69,7 @@ namespace clas12 {
     case 73:
       return clas12calorimeter.getEnergy(clas12::EC, 7, pindex);
     default:
-      std::cerr << "detector: " << detector << "does not have bank Energy" << std::endl;
+      std::cerr << "detector: " << detector << " does not have bank Energy" << std::endl;
       break;
     }
     return std::nan("-99");
@@ -82,7 +94,7 @@ namespace clas12 {
       return clas12calorimeter.getPath(clas12::EC, 1, pindex);
       break;
     default:
-      std::cerr << "detector: " << detector << "does not have bank Path" << std::endl;
+      std::cerr << "detector: " << detector << " does not have bank Path" << std::endl;
     }
     return std::nan("-99");
   }
@@ -104,7 +116,7 @@ namespace clas12 {
       vec.setXYZ(hit.x, hit.y, hit.z);
       return vec;
     default:
-      std::cerr << "detector: " << detector << "does not have bank Postion (x,y,z)" << std::endl;
+      std::cerr << "detector: " << detector << " does not have bank Postion (x,y,z)" << std::endl;
       return vec;
     }
   }
