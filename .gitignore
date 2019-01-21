@@ -1,2 +1,3 @@
 build
 examples/.ipynb_checkpoints
+*.root

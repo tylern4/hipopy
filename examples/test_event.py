@@ -38,46 +38,31 @@ data = Event(reader)
 
 tot_events = 0
 
-dt_pip = TH2F('dt_pip', '#DeltaT #pi^{+}', 500, 0, 4, 500, -10, 10)
-sampling_fraction = TH2F('sampling_fraction', 'Sampling Fraction', 500, 0, 10, 500, 0, 0.5)
-dt_p = TH2F('dt_p', '#DeltaT P^{+}', 500, 0, 4, 500, -10, 10)
+pvsb_pos = TH2F('momentum_vs_beta_pos', 'P vs #beta + Particles', 500, 0, 4, 500, 0, 1.2)
+pvsb_neg = TH2F('momentum_vs_beta_neg', 'P vs #beta - Particles', 500, 0, 4, 500, 0, 1.2)
+pvsb_neutral = TH2F('momentum_vs_beta_neutral', 'P vs #beta 0 Particles', 500, 0, 4, 500, 0, 1.2)
 hfile = TFile('simple.root', 'RECREATE', 'Demo ROOT file with histograms')
 
 start = time.time()
 for event in data:
     tot_events += 1
-    if len(event) == 0:
+    if len(event) == 0 or event.particle[0].pid != 11:
         continue
-    if event.particle[0].pid != 11:
-        continue
-    sampling_fraction.Fill(event.particle[0].P, event.ec[3][0] / event.particle[0].P)
-    sc_t = event.tof[0][0]
-    sc_r = event.tof[0][1]
-    if (sc_t != sc_t) or (sc_r != sc_r):
-        continue
-
-    vertex = vertex_time(sc_t, sc_r, 1.0)
-    for x in range(1, len(event.particle)):
-        try:
-            sc_t = event.tof[x][0]
-            sc_r = event.tof[x][1]
-            if event.particle[x].P == 0 or event.particle[x].charge != 1:
-                continue
-            dt_pip.Fill(event.particle[x].P, deltat(event.particle[x].P, sc_t, sc_r, vertex, MASS_PIP))
-            dt_p.Fill(event.particle[x].P, deltat(event.particle[x].P, sc_t, sc_r, vertex, MASS_P))
-        except IndexError:
-            pass
+    for part in event.particle[1:]:
+        if part.charge == 0:
+            pvsb_neutral.Fill(part.P, part.beta)
+        elif part.charge == 1:
+            pvsb_pos.Fill(part.P, part.beta)
+        elif part.charge == -1:
+            pvsb_neg.Fill(part.P, part.beta)
 
 end = time.time()
 print((end - start), "Sec")
 print("{:,} Hz".format((tot_events / (end - start))))
 hfile.cd()
-sampling_fraction.Write()
-dt_pip.Write()
-dt_p.Write()
-hfile.Write()
-
-#fig, axs = plt.subplots()
-#axs.hist2d(mom, dt_pip, bins=500, range=((0.0, 2.2), (-10.0, 10.0)))
-
-# fig.savefig("dt_pip.pdf")
+pvsb_pos.SetOption("colz")
+pvsb_pos.Write()
+pvsb_neg.SetOption("colz")
+pvsb_neg.Write()
+pvsb_neutral.SetOption("colz")
+pvsb_neutral.Write()

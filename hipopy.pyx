@@ -9,6 +9,7 @@ from libcpp.map cimport map
 from libcpp.utility cimport pair
 from libcpp cimport bool
 from cython.view cimport array as cvarray
+from libc.stdlib cimport free
 
 from collections import defaultdict
 
@@ -122,47 +123,38 @@ cdef class int_node:
 
   def __cinit__(self):
     self.c_node = new node[int]()
-
+  def __dealloc__(self):
+    free(self.c_node)
   def __getitem__(self, int x):
     return self.c_node.getValue(x)
-
   def __len__(self):
     return self.c_node.getLength()
-
   def show(self):
     self.c_node.show()
-
   cdef setup(self, node[int]* node):
     self.c_node = node
-
   cdef int getValue(self, int x):
     return self.c_node.getValue(x)
-
   cdef int getLength(self):
     return self.c_node.getLength()
 
 
 cdef class char_node:
   cdef node[char]*c_node
-
   def __cinit__(self):
     self.c_node = new node[char]()
-
+  def __dealloc__(self):
+    free(self.c_node)
   def __getitem__(self, int x):
     return self.c_node.getValue(x)
-
   def __len__(self):
     return self.c_node.getLength()
-
   def show(self):
     self.c_node.show()
-
   cdef setup(self, node[char]* node):
     self.c_node = node
-
   cdef char getValue(self, int x):
     return self.c_node.getValue(x)
-
   cdef int getLength(self):
     return self.c_node.getLength()
 
@@ -171,22 +163,18 @@ cdef class float_node:
   cdef node[float]*c_node
   def __cinit__(self):
     self.c_node = new node[float]()
-
+  def __dealloc__(self):
+    free(self.c_node)
   def __getitem__(self, int x):
     return self.c_node.getValue(x)
-
   def __len__(self):
     return self.c_node.getLength()
-
   def show(self):
     self.c_node.show()
-
   cdef setup(self, node[float]* node):
     self.c_node = node
-
   cdef float getValue(self, int x):
     return self.c_node.getValue(x)
-
   cdef int getLength(self):
     return self.c_node.getLength()
 
@@ -194,22 +182,18 @@ cdef class short_node:
   cdef node[short]*c_node
   def __cinit__(self):
     self.c_node = new node[short]()
-
+  def __dealloc__(self):
+    free(self.c_node)
   def __getitem__(self, int x):
     return self.c_node.getValue(x)
-
   def __len__(self):
     return self.c_node.getLength()
-
   def show(self):
     self.c_node.show()
-
   cdef setup(self, node[short]* node):
     self.c_node = node
-
   cdef short getValue(self, int x):
     return self.c_node.getValue(x)
-
   cdef int getLength(self):
     return self.c_node.getLength()
 
@@ -217,22 +201,18 @@ cdef class long_node:
   cdef node[long]*c_node
   def __cinit__(self):
     self.c_node = new node[long]()
-
+  def __dealloc__(self):
+    free(self.c_node)
   def __getitem__(self, int x):
     return self.c_node.getValue(x)
-
   def __len__(self):
     return self.c_node.getLength()
-
   def show(self):
     self.c_node.show()
-
   cdef setup(self, node[long]* node):
     self.c_node = node
-
   cdef long getValue(self, int x):
     return self.c_node.getValue(x)
-
   cdef int getLength(self):
     return self.c_node.getLength()
 
@@ -250,7 +230,6 @@ cdef class hipo_reader:
 
   def __repr__(self):
     return self.jsonString()
-
   cdef void open(self, filename):
     """Open a new hipo file with the hipo::reader"""
     cdef bytes filename_bytes = filename.encode()
@@ -378,7 +357,9 @@ cdef class LorentzVector:
     else:
       self.c_TLorentzVector = new TLorentzVector(px, py, pz, 0)
   def __dealloc__(self):
-    del self.c_TLorentzVector
+    free(self.c_TLorentzVector)
+  def __del__(self):
+    free(self.c_TLorentzVector)
   def __add__(LorentzVector self, LorentzVector other):
     cdef double X = self.c_TLorentzVector.Px() + other.c_TLorentzVector.Px()
     cdef double Y = self.c_TLorentzVector.Py() + other.c_TLorentzVector.Py()
@@ -509,6 +490,10 @@ cdef class ThreeVector:
     return "Vx {0: 0.2f} | Vy {1: 0.2f} | Vz {2: 0.2f}".format(self.vx,self.vy ,self.vz)
   def __repr__(self):
     return self.__str__()
+  def __dealloc__(self):
+    free(self.c_TVector3)
+  def __del__(self):
+    free(self.c_TVector3)
   @property
   def x(ThreeVector self):
     return self.c_TVector3.x()
@@ -733,7 +718,6 @@ cdef class Event:
     float_node _traj_x, _traj_y, _traj_z, _traj_cx, _traj_cy, _traj_cz
 
     public list particle, ids
-    public double[:,:] ec, cc, tof
 
   def __cinit__(Event self, hipo_reader reader):
     self.hiporeader = reader
@@ -753,7 +737,6 @@ cdef class Event:
     self._charge = reader.getInt8Node("REC::Particle", "charge")
     self._beta = reader.getFloatNode("REC::Particle", "beta")
     #REC::Calorimeter
-    self.ec = cvarray(shape=(20,4), itemsize=sizeof(double), format="d")
     self._ec_pindex = reader.getInt16Node(u"REC::Calorimeter", u"pindex")
     self._ec_detector = reader.getInt8Node(u"REC::Calorimeter", u"detector")
     self._ec_sector = reader.getInt8Node(u"REC::Calorimeter", u"sector")
@@ -768,7 +751,6 @@ cdef class Event:
     self._ec_lv = reader.getFloatNode(u"REC::Calorimeter", u"lv")
     self._ec_lw = reader.getFloatNode(u"REC::Calorimeter", u"lw")
     #REC::Cherenkov
-    self.cc = cvarray(shape=(20,2), itemsize=sizeof(double), format="d")
     self._cc_pindex = reader.getInt16Node(u"REC::Cherenkov", u"pindex")
     self._cc_detector = reader.getInt8Node(u"REC::Cherenkov", u"detector")
     self._cc_sector = reader.getInt8Node(u"REC::Cherenkov", u"sector")
@@ -791,7 +773,6 @@ cdef class Event:
     self._ft_radius = reader.getFloatNode(u"REC::ForwardTagger", u"radius")
     self._ft_size = reader.getInt16Node(u"REC::ForwardTagger", u"size")
     #REC::Scintillator
-    self.tof = cvarray(shape=(20,4), itemsize=sizeof(double), format="d")
     self._sc_pindex = reader.getInt16Node(u"REC::Scintillator", u"pindex")
     self._sc_detector = reader.getInt8Node(u"REC::Scintillator", u"detector")
     self._sc_sector = reader.getInt8Node(u"REC::Scintillator", u"sector")
@@ -817,23 +798,13 @@ cdef class Event:
     self._traj_cx = reader.getFloatNode(u"REC::Traj", u"cx")
     self._traj_cy = reader.getFloatNode(u"REC::Traj", u"cy")
     self._traj_cz = reader.getFloatNode(u"REC::Traj", u"cz")
-
   def __len__(Event self):
     return self._pid.getLength()
   def __iter__(Event self):
       return self
-  def next(Event self):
-    if self.hiporeader.c_next():
-      self.loadParts()
-      self.loadDetectors()
-      return self
-    else:
-      raise StopIteration
   def __next__(Event self):
     if self.hiporeader.c_next():
       self.loadParts()
-      self.loadEC()
-      #self.loadDetectors()
       return self
     else:
       raise StopIteration
@@ -848,71 +819,3 @@ cdef class Event:
       self.ids[i] = self._pid[i]
       self.particle[i] = Particle(self._px[i], self._py[i], self._pz[i], self._pid[i],
                           self._vx[i], self._vy[i], self._vz[i], self._charge[i], self._beta[i])
-  cdef void loadEC(Event self):
-    cdef:
-      double pcal = 0.0
-      double einner = 0.0
-      double eouter = 0.0
-      int i,k = 0
-    for i in range(len(self._pid)):
-      for k in range(len(self._ec_pindex)):
-        pindex = self._ec_pindex[k]
-        detector = self._ec_detector[k]
-        if pindex == i and detector == 7:
-          layer = self._ec_layer[k]
-          energy = self._ec_energy[k]
-          if(layer == 1):
-            pcal += energy
-          elif(layer == 4):
-            einner += energy
-          elif(layer == 7):
-            eouter += energy
-        self.ec[i][0] = pcal
-        self.ec[i][1] = einner
-        self.ec[i][2] = eouter
-        self.ec[i][3] = pcal+einner+eouter
-
-  cdef void loadTOF(Event self):
-    cdef:
-      double ftof_sc_t = np.nan
-      double ftof_sc_r = np.nan
-      double ctof_sc_t = np.nan
-      double ctof_sc_r = np.nan
-      int i,k = 0
-    for i in range(len(self._pid)):
-      for k in range(len(self._ec_pindex)):
-        pindex = self._sc_pindex[k]
-        detector = self._sc_detector[k]
-        if pindex == i and detector == 12:
-          ftof_sc_t = self._sc_time[k]
-          ftof_sc_r = self._sc_path[k]
-        elif pindex == i and detector == 4:
-          ctof_sc_t = self._sc_time[k]
-          ctof_sc_r = self._sc_path[k]
-
-      self.tof[i][0] = ftof_sc_t
-      self.tof[i][1] = ftof_sc_r
-      self.tof[i][2] = ctof_sc_t
-      self.tof[i][3] = ctof_sc_r
-
-  cdef void loadCC(Event self):
-    cdef:
-      double nphe_LTCC = np.nan
-      double nphe_HTCC = np.nan
-      int i,k = 0
-    for i in range(len(self._pid)):
-      for k in range(len(self._ec_pindex)):
-        pindex = self._cc_pindex[k]
-        detector = self._cc_detector[k]
-        if pindex == i and detector == 15:
-          nphe_HTCC = self._cc_nphe[k]
-        elif pindex == i and detector == 16:
-          nphe_LTCC = self._cc_nphe[k]
-
-      self.cc[i][0] = nphe_LTCC
-      self.cc[i][1] = nphe_HTCC
-
-  cdef void loadDetectors(Event self):
-    self.loadEC()
-    self.loadTOF()
-    self.loadCC()
