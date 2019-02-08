@@ -42,5 +42,5 @@ install(
     PATTERN "*.h"
 )
 
-configure_file(hipocpp.pc.in hipocpp.pc @ONLY)
-#install(FILES ${CMAKE_BINARY_DIR}/src/hipocpp3/hipocpp.pc DESTINATION share/pkgconfig)
+configure_file(hipocpp.pc.in hipocpp3.pc @ONLY)
+install(FILES ${CMAKE_BINARY_DIR}/src/hipocpp3/hipocpp3.pc DESTINATION share/pkgconfig)

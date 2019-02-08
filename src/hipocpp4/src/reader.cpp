@@ -18,10 +18,7 @@ namespace hipo {
    * will printout a warning message if the library
    * was not compiled with compression libraries LZ4 or GZIP
    */
-  reader::reader() {
-    printWarning();
-    hipoutils.printLogo();
-  }
+  reader::reader() {}
 
   /**
    * Default destructor. Does nothing
@@ -95,21 +92,10 @@ namespace hipo {
     header.version             = word_8 & 0x000000FF;
     header.bitInfo             = (word_8 >> 8) & 0x00FFFFFF;
     header.firstRecordPosition = 4 * header.headerLength + header.userHeaderLength;
-    printf("----------------------------------------\n");
-    printf("**** reader:: header version   : %d \n", header.version);
-    printf("**** reader:: header length    : %d \n", header.headerLength * 4);
-    printf("**** reader:: first record pos : %lu\n", header.firstRecordPosition);
-    printf("**** reader:: trailer position : %lu\n", header.trailerPosition);
-    printf("**** reader:: file size        : %lu\n", inputStreamSize);
-    printf("----------------------------------------\n");
-    // int *signature = reinterpret_cast<int *>(&headerBuffer[0]);
-    // printf("signature = %X\n",(unsigned int) *signature);
-    // std::cout << "signature = " << std::ios::hex << (*signature) << '\n';
   }
 
   void reader::readIndex() {
     inputRecord.readRecord(inputStream, header.trailerPosition, 0);
-    printf("*** reader:: trailer record event count : %d\n", inputRecord.getEventCount());
     hipo::event event;
     inputRecord.readHipoEvent(event, 0);
     event.show();
@@ -119,7 +105,6 @@ namespace hipo {
 
     int rows = base.getSize() / 32;
 
-    printf(" number of rows = %d\n", rows);
     for (int i = 0; i < rows; i++) {
       long position = base.getLongAt(i * 8);
       int  length   = base.getIntAt(rows * 8 + i * 4);
@@ -162,14 +147,12 @@ namespace hipo {
     hipo::record dictRecord;
     dictRecord.readRecord(inputStream, position, 0);
     int nevents = dictRecord.getEventCount();
-    printf(" reading record at position %8lu, number of entries = %5d\n", position,
-           dictRecord.getEventCount());
+
     hipo::structure schemaStructure;
     hipo::event     event;
     for (int i = 0; i < nevents; i++) {
       dictRecord.readHipoEvent(event, i);
       event.getStructure(schemaStructure, 120, 2);
-      printf("schema : %s\n", schemaStructure.getStringAt(0).c_str());
       dict.parse(schemaStructure.getStringAt(0).c_str());
     }
   }
@@ -189,23 +172,10 @@ namespace hipo {
     if (recordToBeRead != recordNumber) {
       long position = readerEventIndex.getPosition(recordToBeRead);
       inputRecord.readRecord(inputStream, position, 0);
-      /*printf(" record changed from %d to %d at event %d total event # %d\n",
-        recordNumber, recordToBeRead,readerEventIndex.getEventNumber(),
-        readerEventIndex.getMaxEvents());*/
     }
     return true;
   }
 
-  void reader::printWarning() {
-#ifndef __LZ4__
-    std::cout << "******************************************************" << std::endl;
-    std::cout << "* WARNING:                                           *" << std::endl;
-    std::cout << "*   This library war compiled without LZ4 support.   *" << std::endl;
-    std::cout << "*   Reading and writing compressed buffers will not  *" << std::endl;
-    std::cout << "*   work. However un-compressed file I/O will work.  *" << std::endl;
-    std::cout << "******************************************************" << std::endl;
-#endif
-  }
 } // namespace hipo
 
 namespace hipo {
@@ -232,7 +202,6 @@ namespace hipo {
     }
 
     if (recordEvents.size() < currentRecord + 2 + 1) {
-      printf("advance(): Warning, reached the limit of events.\n");
       return false;
     }
     currentEvent++;

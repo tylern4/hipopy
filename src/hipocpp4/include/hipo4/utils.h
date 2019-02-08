@@ -36,38 +36,11 @@ namespace hipo {
 
     static int findposition(const std::string& str, const char* delim, int order);
 
-    static void printLogo();
-
-    static std::string getHeader();
-    static std::string getFileHeader();
-    static std::string getFileTrailer(const char* code);
-    static std::string getSConstruct();
-
     static void writeInt(char* buffer, int position, int value);
     static void writeLong(char* buffer, int position, long value);
     static void writeByte(char* buffer, int position, uint8_t value);
   };
 
-  class benchmark {
-  private:
-    std::chrono::high_resolution_clock                 clock;
-    std::chrono::time_point<std::chrono::steady_clock> first, second;
-
-    long running_time;
-    int  counter;
-
-  public:
-    benchmark() {
-      running_time = 0;
-      counter      = 0;
-    }
-    ~benchmark() {}
-
-    void resume();
-    void pause();
-    long getTime();
-    int  getCounter();
-  };
 } // namespace hipo
 
 #endif /* UTILS_H */

@@ -80,10 +80,6 @@ namespace hipo {
     std::vector<char> recordBuffer;
     std::vector<char> recordCompressedBuffer;
 
-    hipo::benchmark readBenchmark;
-    hipo::benchmark unzipBenchmark;
-    hipo::benchmark indexBenchmark;
-
     char* getUncompressed(const char* data, int dataLength, int dataLengthUncompressed);
     int   getUncompressed(const char* data, char* dest, int dataLength, int dataLengthUncompressed);
     void  showBuffer(const char* data, int wrapping, int maxsize);
@@ -100,10 +96,6 @@ namespace hipo {
     void readEvent(std::vector<char>& vec, int index);
     void readHipoEvent(hipo::event& event, int index);
     void getData(hipo::data& data, int index);
-
-    hipo::benchmark& getReadBenchmark() { return readBenchmark; }
-    hipo::benchmark& getUnzipBenchmark() { return unzipBenchmark; }
-    hipo::benchmark& getIndexBenchmark() { return indexBenchmark; }
   };
 } // namespace hipo
 #endif /* HIPORECORD_H */
