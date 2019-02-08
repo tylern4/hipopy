@@ -5,31 +5,28 @@ set(CMAKE_CXX_FLAGS "${ROOT_CXX_FLAGS}")
 find_package(LZ4 REQUIRED)
 add_definitions(-D__LZ4__)
 
-add_library(hipocpp SHARED
-  src/data.cpp
+add_library(hipocpp4 SHARED
+  src/bank.cpp
   src/dictionary.cpp
   src/event.cpp
-  src/node.cpp
   src/reader.cpp
   src/record.cpp
-  src/text.cpp
+  src/recordbuilder.cpp
   src/utils.cpp
-  src/wrapper.cpp
-  src/writer.cpp
   )
 
 
-target_link_libraries(hipocpp
+target_link_libraries(hipocpp4
   PUBLIC ${LZ4_LIBRARY}
   )
 
-target_include_directories(hipocpp
+target_include_directories(hipocpp4
   PRIVATE include)
 
-install(TARGETS hipocpp
+install(TARGETS hipocpp4
   EXPORT HipoToolsTargets
     LIBRARY DESTINATION lib
-    PUBLIC_HEADER DESTINATION include/hipocpp
+    PUBLIC_HEADER DESTINATION include/hipocpp4
     )
 
 
@@ -43,4 +40,4 @@ install(
 )
 
 configure_file(hipocpp.pc.in hipocpp.pc @ONLY)
-install(FILES ${CMAKE_BINARY_DIR}/src/hipocpp/hipocpp.pc DESTINATION share/pkgconfig)
+install(FILES ${CMAKE_BINARY_DIR}/src/hipocpp4/hipocpp.pc DESTINATION share/pkgconfig)

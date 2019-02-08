@@ -23,30 +23,58 @@ cdef dict get_id = {'PROTON': 2212, 'NEUTRON': 2112, 'PIP': 211, 'PIM': -211, 'P
 
 cdef dict part_mass = {11: 0.000511, 211: 0.13957, -211: 0.13957, 2212: 0.93827, 2112: 0.939565, 321: 0.493667, -321: 0.493667, 22: 0}
 
-cdef extern from "hipo/node.h" namespace "hipo":
-    cdef cppclass node[T]:
-      node() except +
-      node(int, int) except +
-      T getValue(int)
-      void   reset()
-      void   show()
-      int    getLength()
-      char  *getAddress()
-      int    getBytesLength()
-      void   setLength(int)
-      void   setAddress(char *)
-
-cdef extern from "hipo/reader.h" namespace "hipo":
+cdef extern from "hipo4/reader.h" namespace "hipo":
     cdef cppclass reader:
       reader() except +
-      reader(bool) except +
-      vector[string] getDictionary()
+      reader(char*) except +
+      reader(string) except +
       void open(char*)
-      int getRecordCount()
+      bool hasNext()
       bool next()
-      bool  isOpen()
-      void  showInfo()
-      node *getBranch[T](char*,char*)
+
+
+cdef extern from "hipo4/dictionary.h" namespace "hipo":
+    cdef cppclass schema:
+      schema() except +
+    cdef cppclass dictionary:
+      dictionary() except +
+      schema getSchema(string)
+
+cdef extern from "hipo4/bank.h" namespace "hipo":
+    cdef cppclass bank:
+      bank() except +
+      bank(schema) except +
+      int    getInt(string, int)
+      int    getShort(string, int)
+      int    getByte(string, int)
+      float  getFloat(string, int)
+      double getDouble(string, int)
+      long   getLong(string, int)
+
+
+
+
+cdef class node:
+  cdef dictionary *c_dict
+  cdef schema *c_schema
+  cdef bank *c_bank
+  def __init__(self, name):
+      self.name = name
+      self.c_dict = new dictionary()
+      self.c_bank = new bank(self.c_dict.getSchema(self.name))
+  def getInt(self, name, i):
+    return self.c_bank.getInt(name, i)
+  def getShort(self, name, i):
+    return self.c_bank.getShort(name, i)
+  def getByte(self, name, i):
+    return self.c_bank.getByte(name, i)
+  def getFloat(self, name, i):
+    return self.c_brank.getFloat(name, i)
+  def getDouble(self, name, i):
+    return self.c_brank.getDouble(name, i)
+  def getLong(self, name, i):
+    return self.c_brank.getLong(name, i)
+
 
 cdef extern from "TLorentzVector.h":
   cdef cppclass TLorentzVector:
@@ -118,105 +146,7 @@ cdef char* str_to_char(str name):
   cdef char* c_name = name_bytes
   return c_name
 
-cdef class int_node:
-  cdef node[int]*c_node
-
-  def __cinit__(self):
-    self.c_node = new node[int]()
-  def __dealloc__(self):
-    free(self.c_node)
-  def __getitem__(self, int x):
-    return self.c_node.getValue(x)
-  def __len__(self):
-    return self.c_node.getLength()
-  def show(self):
-    self.c_node.show()
-  cdef setup(self, node[int]* node):
-    self.c_node = node
-  cdef int getValue(self, int x):
-    return self.c_node.getValue(x)
-  cdef int getLength(self):
-    return self.c_node.getLength()
-
-
-cdef class char_node:
-  cdef node[char]*c_node
-  def __cinit__(self):
-    self.c_node = new node[char]()
-  def __dealloc__(self):
-    free(self.c_node)
-  def __getitem__(self, int x):
-    return self.c_node.getValue(x)
-  def __len__(self):
-    return self.c_node.getLength()
-  def show(self):
-    self.c_node.show()
-  cdef setup(self, node[char]* node):
-    self.c_node = node
-  cdef char getValue(self, int x):
-    return self.c_node.getValue(x)
-  cdef int getLength(self):
-    return self.c_node.getLength()
-
-
-cdef class float_node:
-  cdef node[float]*c_node
-  def __cinit__(self):
-    self.c_node = new node[float]()
-  def __dealloc__(self):
-    free(self.c_node)
-  def __getitem__(self, int x):
-    return self.c_node.getValue(x)
-  def __len__(self):
-    return self.c_node.getLength()
-  def show(self):
-    self.c_node.show()
-  cdef setup(self, node[float]* node):
-    self.c_node = node
-  cdef float getValue(self, int x):
-    return self.c_node.getValue(x)
-  cdef int getLength(self):
-    return self.c_node.getLength()
-
-cdef class short_node:
-  cdef node[short]*c_node
-  def __cinit__(self):
-    self.c_node = new node[short]()
-  def __dealloc__(self):
-    free(self.c_node)
-  def __getitem__(self, int x):
-    return self.c_node.getValue(x)
-  def __len__(self):
-    return self.c_node.getLength()
-  def show(self):
-    self.c_node.show()
-  cdef setup(self, node[short]* node):
-    self.c_node = node
-  cdef short getValue(self, int x):
-    return self.c_node.getValue(x)
-  cdef int getLength(self):
-    return self.c_node.getLength()
-
-cdef class long_node:
-  cdef node[long]*c_node
-  def __cinit__(self):
-    self.c_node = new node[long]()
-  def __dealloc__(self):
-    free(self.c_node)
-  def __getitem__(self, int x):
-    return self.c_node.getValue(x)
-  def __len__(self):
-    return self.c_node.getLength()
-  def show(self):
-    self.c_node.show()
-  cdef setup(self, node[long]* node):
-    self.c_node = node
-  cdef long getValue(self, int x):
-    return self.c_node.getValue(x)
-  cdef int getLength(self):
-    return self.c_node.getLength()
-
-cdef class hipo_reader:
+cdef class hipo4_reader:
   """Hipo_reader based on hipo::reader class"""
   # Define hipo::reader class
   cdef reader*c_reader
@@ -236,18 +166,6 @@ cdef class hipo_reader:
     cdef char* c_filename = filename_bytes
     self.c_reader.open(c_filename)
 
-  def isOpen(self):
-    """Check if the file is open"""
-    return self.c_reader.isOpen()
-
-  def showInfo(self):
-    """Shows the files info from hipo::reader.showInfo()"""
-    self.c_reader.showInfo()
-
-  def getRecordCount(self):
-    """Return the number of records in the file"""
-    return self.c_reader.getRecordCount()
-
   def next(self):
     """Load the next vaules of the ntuple [Returns true if there is an event]"""
     return self.c_reader.next()
@@ -259,89 +177,6 @@ cdef class hipo_reader:
   def __next__(self):
     """Load the next vaules of the ntuple [Returns true if there is an event]"""
     return self.c_reader.next()
-
-  def getDictionary(self):
-    """Get dictionary string from hipo file [More useful to use getjson]"""
-    return self.c_reader.getDictionary()
-
-  def jsonString(self):
-    """Get dictionary as string"""
-    hipo_dict = self.c_reader.getDictionary()
-    out = []
-    out.append("[{\n")
-    for dic in hipo_dict:
-        dic = str(dic)
-        dic = dic.split("{")[1].split("}")
-        bank = dic[0].split(",")
-        out.append("\t\"bank\" : \""+bank[1]+"\",\n")
-        out.append("\t\"group\" : "+ bank[0]+",\n")
-        out.append("\t\t\"items\": [\n")
-        items = dic[1].split("[")
-        ids = []
-        for x in items[1:]:
-            ids = x.split("]")[0].split(",")
-            out.append("\t\t{")
-            out.append("\"name\": \"{0}\", \"id\": {1}, \"type\": \"{2}\"".format(ids[1],ids[0],str(ids[2]).lower()))
-            out.append("},\n")
-        out[-1] = "}\t]\n},\n{\n"
-
-    out[-1] = "}\n]\n}\n]"
-    out = ''.join(out)
-    return out
-
-  def getJson(self):
-    """Get dictionary as a json object"""
-    return json.loads(self.jsonString())
-
-  cpdef getIntNode(self, group, item):
-    """Create a hipo::node<int> which is accesible to python"""
-    cdef node[int]*c_node
-    group = str_to_char(group)
-    item = str_to_char(item)
-    c_node = self.c_reader.getBranch[int](group, item)
-    py_node = int_node()
-    py_node.setup(c_node)
-    return py_node
-
-  cpdef getLongNode(self, group, item):
-    """Create a hipo::node<long> which is accesible to python"""
-    cdef node[long]*c_node
-    group = str_to_char(group)
-    item = str_to_char(item)
-    c_node = self.c_reader.getBranch[long](group, item)
-    py_node = long_node()
-    py_node.setup(c_node)
-    return py_node
-
-  cpdef getInt8Node(self, group, item):
-    """Create a hipo::node<int8_t> which is accesible to python"""
-    cdef node[char]*c_node
-    group = str_to_char(group)
-    item = str_to_char(item)
-    c_node = self.c_reader.getBranch[char](group, item)
-    py_node = char_node()
-    py_node.setup(c_node)
-    return py_node
-
-  cpdef getFloatNode(self, group, item):
-    """Create a hipo::node<float> which is accesible to python"""
-    cdef node[float]*c_node
-    group = str_to_char(group)
-    item = str_to_char(item)
-    c_node = self.c_reader.getBranch[float](group, item)
-    py_node = float_node()
-    py_node.setup(c_node)
-    return py_node
-
-  cpdef getInt16Node(self, group, item):
-    """Create a hipo::node<int16_t> which is accesible to python"""
-    cdef node[short]*c_node
-    group = str_to_char(group)
-    item = str_to_char(item)
-    c_node = self.c_reader.getBranch[short](group, item)
-    py_node = short_node()
-    py_node.setup(c_node)
-    return py_node
 
 cdef class LorentzVector:
   cdef TLorentzVector*c_TLorentzVector
@@ -686,118 +521,14 @@ cdef class Particle:
 
 cdef class Event:
   cdef:
-    hipo_reader hiporeader
+    hipo4_reader hiporeader
     int run
-    #RUN::config
-    #REC::Particle
-    int_node _run, _pid, _event
-    char_node _charge, _pindex
-    float_node _px, _py, _pz, _vx, _vy, _vz, _beta, _torus, _solenoid
-    #REC::Calorimeter
-    short_node _ec_pindex
-    char_node _ec_detector, _ec_sector, _ec_layer
-    float_node _ec_energy, _ec_time, _ec_path, _ec_x, _ec_y, _ec_z, _ec_lu, _ec_lv, _ec_lw
-    #REC::Cherenkov
-    short_node _cc_pindex
-    char_node _cc_detector, _cc_sector
-    float_node _cc_nphe, _cc_time, _cc_path, _cc_theta, _cc_phi
-    #REC::ForwardTagger
-    short_node _ft_pindex, _ft_size
-    char_node _ft_detector
-    float_node _ft_energy, _ft_time, _ft_path, _ft_x, _ft_y, _ft_z, _ft_dx, _ft_dy, _ft_radius
-    #REC::Scintillator
-    short_node _sc_pindex, _sc_component
-    char_node _sc_detector, _sc_sector, _sc_layer
-    float_node _sc_energy, _sc_time, _sc_path
-    #REC::Track
-    short_node _track_pindex, _track_NDF, _track_NDF_nomm
-    char_node _track_detector, _track_sector
-    float_node _track_chi2, _track_chi2_nomm
-    #REC::Traj
-    short_node _traj_pindex, _traj_detId
-    float_node _traj_x, _traj_y, _traj_z, _traj_cx, _traj_cy, _traj_cz
 
     public list particle, ids
 
-  def __cinit__(Event self, hipo_reader reader):
+  def __cinit__(Event self, hipo4_reader reader):
     self.hiporeader = reader
-    #RUN::config
-    self._run = reader.getIntNode(u"RUN::config", u"run")
-    self._event = reader.getIntNode(u"RUN::config", u"event")
-    self._torus = reader.getFloatNode(u"RUN::config", u"torus")
-    self._solenoid = reader.getFloatNode(u"RUN::config", u"solenoid")
-    #REC::Particle
-    self._pid = reader.getIntNode("REC::Particle", "pid")
-    self._px = reader.getFloatNode("REC::Particle", "px")
-    self._py = reader.getFloatNode("REC::Particle", "py")
-    self._pz = reader.getFloatNode("REC::Particle", "pz")
-    self._vx = reader.getFloatNode("REC::Particle", "vx")
-    self._vy = reader.getFloatNode("REC::Particle", "vy")
-    self._vz = reader.getFloatNode("REC::Particle", "vz")
-    self._charge = reader.getInt8Node("REC::Particle", "charge")
-    self._beta = reader.getFloatNode("REC::Particle", "beta")
-    #REC::Calorimeter
-    self._ec_pindex = reader.getInt16Node(u"REC::Calorimeter", u"pindex")
-    self._ec_detector = reader.getInt8Node(u"REC::Calorimeter", u"detector")
-    self._ec_sector = reader.getInt8Node(u"REC::Calorimeter", u"sector")
-    self._ec_layer = reader.getInt8Node(u"REC::Calorimeter", u"layer")
-    self._ec_energy = reader.getFloatNode(u"REC::Calorimeter", u"energy")
-    self._ec_time = reader.getFloatNode(u"REC::Calorimeter", u"time")
-    self._ec_path = reader.getFloatNode(u"REC::Calorimeter", u"path")
-    self._ec_x = reader.getFloatNode(u"REC::Calorimeter", u"x")
-    self._ec_y = reader.getFloatNode(u"REC::Calorimeter", u"y")
-    self._ec_z = reader.getFloatNode(u"REC::Calorimeter", u"z")
-    self._ec_lu = reader.getFloatNode(u"REC::Calorimeter", u"lu")
-    self._ec_lv = reader.getFloatNode(u"REC::Calorimeter", u"lv")
-    self._ec_lw = reader.getFloatNode(u"REC::Calorimeter", u"lw")
-    #REC::Cherenkov
-    self._cc_pindex = reader.getInt16Node(u"REC::Cherenkov", u"pindex")
-    self._cc_detector = reader.getInt8Node(u"REC::Cherenkov", u"detector")
-    self._cc_sector = reader.getInt8Node(u"REC::Cherenkov", u"sector")
-    self._cc_nphe = reader.getFloatNode(u"REC::Cherenkov", u"nphe")
-    self._cc_time = reader.getFloatNode(u"REC::Cherenkov", u"time")
-    self._cc_path = reader.getFloatNode(u"REC::Cherenkov", u"path")
-    self._cc_theta = reader.getFloatNode(u"REC::Cherenkov", u"theta")
-    self._cc_phi = reader.getFloatNode(u"REC::Cherenkov", u"phi")
-    #REC::ForwardTagger
-    self._ft_pindex = reader.getInt16Node(u"REC::ForwardTagger", u"pindex")
-    self._ft_detector = reader.getInt8Node(u"REC::ForwardTagger", u"detector")
-    self._ft_energy = reader.getFloatNode(u"REC::ForwardTagger", u"energy")
-    self._ft_time = reader.getFloatNode(u"REC::ForwardTagger", u"time")
-    self._ft_path = reader.getFloatNode(u"REC::ForwardTagger", u"path")
-    self._ft_x = reader.getFloatNode(u"REC::ForwardTagger", u"x")
-    self._ft_y = reader.getFloatNode(u"REC::ForwardTagger", u"y")
-    self._ft_z = reader.getFloatNode(u"REC::ForwardTagger", u"z")
-    self._ft_dx = reader.getFloatNode(u"REC::ForwardTagger", u"dx")
-    self._ft_dy = reader.getFloatNode(u"REC::ForwardTagger", u"dy")
-    self._ft_radius = reader.getFloatNode(u"REC::ForwardTagger", u"radius")
-    self._ft_size = reader.getInt16Node(u"REC::ForwardTagger", u"size")
-    #REC::Scintillator
-    self._sc_pindex = reader.getInt16Node(u"REC::Scintillator", u"pindex")
-    self._sc_detector = reader.getInt8Node(u"REC::Scintillator", u"detector")
-    self._sc_sector = reader.getInt8Node(u"REC::Scintillator", u"sector")
-    self._sc_layer = reader.getInt8Node(u"REC::Scintillator", u"layer")
-    self._sc_component = reader.getInt16Node(u"REC::Scintillator", u"component")
-    self._sc_energy = reader.getFloatNode(u"REC::Scintillator", u"energy")
-    self._sc_time = reader.getFloatNode(u"REC::Scintillator", u"time")
-    self._sc_path = reader.getFloatNode(u"REC::Scintillator", u"path")
-    #REC::Track
-    self._track_pindex = reader.getInt16Node(u"REC::Track", u"pindex")
-    self._track_detector = reader.getInt8Node(u"REC::Track", u"detector")
-    self._track_sector = reader.getInt8Node(u"REC::Track", u"sector")
-    self._track_chi2 = reader.getFloatNode(u"REC::Track", u"chi2")
-    self._track_NDF = reader.getInt16Node(u"REC::Track", u"NDF")
-    self._track_chi2_nomm = reader.getFloatNode(u"REC::Track", u"chi2_nomm")
-    self._track_NDF_nomm = reader.getInt16Node(u"REC::Track", u"NDF_nomm")
-    #REC::Traj
-    self._traj_pindex = reader.getInt16Node(u"REC::Traj", u"pindex")
-    self._traj_detId = reader.getInt16Node(u"REC::Traj", u"detId")
-    self._traj_x = reader.getFloatNode(u"REC::Traj", u"x")
-    self._traj_y = reader.getFloatNode(u"REC::Traj", u"y")
-    self._traj_z = reader.getFloatNode(u"REC::Traj", u"z")
-    self._traj_cx = reader.getFloatNode(u"REC::Traj", u"cx")
-    self._traj_cy = reader.getFloatNode(u"REC::Traj", u"cy")
-    self._traj_cz = reader.getFloatNode(u"REC::Traj", u"cz")
+
   def __len__(Event self):
     return self._pid.getLength()
   def __iter__(Event self):

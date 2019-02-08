@@ -8,7 +8,7 @@ import time
 import matplotlib.pyplot as plt
 import numpy as np
 
-from hipopy import Event, LorentzVector, Particle, hipo_reader
+from hipopy3 import Event, LorentzVector, Particle, hipo3_reader
 from ROOT import TH1F, TH2F, TCanvas, TFile, TLorentzVector
 
 MASS_P = 0.93827203
@@ -27,21 +27,27 @@ def vertex_time(sc_time, sc_pathlength, relatavistic_beta):
 def deltat(momentum, sc_t, sc_r, vertex, mass):
     if momentum == 0:
         return np.nan
-    mp = (mass / momentum)
+    mp = mass / momentum
     beta = 1.0 / np.sqrt(1.0 + (mp * mp))
     return vertex - vertex_time(sc_t, sc_r, beta)
 
 
 file_name = sys.argv[1]
-reader = hipo_reader(file_name)
+reader = hipo3_reader(file_name)
 data = Event(reader)
 
 tot_events = 0
 
-pvsb_pos = TH2F('momentum_vs_beta_pos', 'P vs #beta + Particles', 500, 0, 4, 500, 0, 1.2)
-pvsb_neg = TH2F('momentum_vs_beta_neg', 'P vs #beta - Particles', 500, 0, 4, 500, 0, 1.2)
-pvsb_neutral = TH2F('momentum_vs_beta_neutral', 'P vs #beta 0 Particles', 500, 0, 4, 500, 0, 1.2)
-hfile = TFile('simple.root', 'RECREATE', 'Demo ROOT file with histograms')
+pvsb_pos = TH2F(
+    "momentum_vs_beta_pos", "P vs #beta + Particles", 500, 0, 4, 500, 0, 1.2
+)
+pvsb_neg = TH2F(
+    "momentum_vs_beta_neg", "P vs #beta - Particles", 500, 0, 4, 500, 0, 1.2
+)
+pvsb_neutral = TH2F(
+    "momentum_vs_beta_neutral", "P vs #beta 0 Particles", 500, 0, 4, 500, 0, 1.2
+)
+hfile = TFile("simple.root", "RECREATE", "Demo ROOT file with histograms")
 
 start = time.time()
 for event in data:
