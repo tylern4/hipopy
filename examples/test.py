@@ -5,6 +5,7 @@ from __future__ import division
 import sys
 
 import numpy as np
+import time
 
 from hipopy3 import hipo3_reader as hipo_reader
 
@@ -20,11 +21,13 @@ vy = reader.getFloatNode(u"REC::Particle", u"vy")
 vz = reader.getFloatNode(u"REC::Particle", u"vz")
 
 total = 0
-good = 0
+start_time = time.time()
 while reader.next():
-    total += 1
     if len(pid) == 0:
         continue
-    good += 1
+    total += 1
+    momentum = np.sqrt(np.square(px[0]) + np.square(py[0]) + np.square(pz[0]))
 
-print(good / total)
+
+print(str(time.time() - start_time), "sec")
+print(str(total / (time.time() - start_time)), "hz")

@@ -39,13 +39,13 @@ data = Event(reader)
 tot_events = 0
 
 pvsb_pos = TH2F(
-    "momentum_vs_beta_pos", "P vs #beta + Particles", 500, 0, 4, 500, 0, 1.2
+    "momentum_vs_beta_pos", "P vs #beta Pos Particles", 500, 0, 4, 500, 0, 1.2
 )
 pvsb_neg = TH2F(
-    "momentum_vs_beta_neg", "P vs #beta - Particles", 500, 0, 4, 500, 0, 1.2
+    "momentum_vs_beta_neg", "P vs #beta Neg Particles", 500, 0, 4, 500, 0, 1.2
 )
 pvsb_neutral = TH2F(
-    "momentum_vs_beta_neutral", "P vs #beta 0 Particles", 500, 0, 4, 500, 0, 1.2
+    "momentum_vs_beta_neutral", "P vs #beta Neu Particles", 500, 0, 4, 500, 0, 1.2
 )
 hfile = TFile("simple.root", "RECREATE", "Demo ROOT file with histograms")
 
