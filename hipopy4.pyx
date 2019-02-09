@@ -3,39 +3,22 @@
 # cython: boundscheck=False
 
 cimport cython
-from libcpp.vector cimport vector
+
 from libcpp.string cimport string
-from libcpp.map cimport map
-from libcpp.utility cimport pair
 from libcpp cimport bool
-from cython.view cimport array as cvarray
-from libc.stdlib cimport free
-
-from collections import defaultdict
-
-from libc.math cimport isnan, sqrt, log, atan2
-
-import numpy as np
-
-import json
-
-cdef dict get_id = {'PROTON': 2212, 'NEUTRON': 2112, 'PIP': 211, 'PIM': -211, 'PI0': 111, 'KP': 321, 'KM': -321, 'PHOTON': 22, 'ELECTRON': 11}
-
-cdef dict part_mass = {11: 0.000511, 211: 0.13957, -211: 0.13957, 2212: 0.93827, 2112: 0.939565, 321: 0.493667, -321: 0.493667, 22: 0}
-
-cdef extern from "hipo4/reader.h" namespace "hipo":
-    cdef cppclass reader:
-      reader() except +
-      reader(char*) except +
-      reader(string) except +
-      void open(char*)
-      bool hasNext()
-      bool next()
-
+#from libcpp.map cimport map
+#from libcpp.utility cimport pair
+#from libcpp.vector cimport vector
+#from cython.view cimport array as cvarray
+#from libc.stdlib cimport free
+#import numpy as np
 
 cdef extern from "hipo4/dictionary.h" namespace "hipo":
     cdef cppclass schema:
       schema() except +
+      string json()
+
+cdef extern from "hipo4/dictionary.h" namespace "hipo":
     cdef cppclass dictionary:
       dictionary() except +
       schema getSchema(string)
@@ -44,6 +27,7 @@ cdef extern from "hipo4/bank.h" namespace "hipo":
     cdef cppclass bank:
       bank() except +
       bank(schema) except +
+      int    getRows()
       int    getInt(string, int)
       int    getShort(string, int)
       int    getByte(string, int)
@@ -51,13 +35,30 @@ cdef extern from "hipo4/bank.h" namespace "hipo":
       double getDouble(string, int)
       long   getLong(string, int)
 
+cdef extern from "hipo4/event.h" namespace "hipo":
+    cdef cppclass event:
+      event() except +
+      void getStructure(bank)
+
+
+cdef extern from "hipo4/reader.h" namespace "hipo":
+    cdef cppclass reader:
+      reader() except +
+      reader(char*) except +
+      reader(string) except +
+      void read(event)
+      dictionary* dictionary()
+      void readDictionary(dictionary)
+      void open(string)
+      bool hasNext()
+      bool next()
 
 
 
 cdef class node:
-  cdef dictionary *c_dict
-  cdef schema *c_schema
-  cdef bank *c_bank
+  cdef dictionary*c_dict
+  cdef schema*c_schema
+  cdef bank*c_bank
   def __init__(self, name):
       self.name = name
       self.c_dict = new dictionary()
@@ -75,478 +76,357 @@ cdef class node:
   def getLong(self, name, i):
     return self.c_brank.getLong(name, i)
 
-
-cdef extern from "TLorentzVector.h":
-  cdef cppclass TLorentzVector:
-    TLorentzVector() except +
-    TLorentzVector(double x, double y, double z, double t) except +
-    void Boost(double, double, double)
-    void SetXYZM(double x, double y, double z, double m)
-    void SetXYZT (double x, double y, double z, double t)
-    double Px()
-    double Py()
-    double Pz()
-    double P()
-    double E()
-    double Energy()
-    double Theta()
-    double CosTheta()
-    double Phi()
-    double Rho()
-    double Perp2()
-    double Pt()
-    double Perp()
-    double Et2()
-    double Et()
-    double Mag2()
-    double M2()
-    double Mag()
-    double M()
-    double Mt2()
-    double Mt()
-    double Beta()
-    double Gamma()
-    double Plus()
-    double Minus()
-    double Rapidity()
-    double Eta()
-    double PseudoRapidity()
-
-cdef extern from "TVector3.h":
-  cdef cppclass TVector3:
-    TVector3 () except +
-    TVector3 (double x, double y, double z) except +
-    void SetXYZ(double x, double y, double z)
-    double x()
-    double y()
-    double z()
-    double X()
-    double Y()
-    double Z()
-    double Px()
-    double Py()
-    double Pz()
-    double Phi()
-    double Theta()
-    double CosTheta()
-    double Mag2()
-    double Mag()
-    double Perp2()
-    double Pt()
-    double Perp()
-    double Eta ()
-    void RotateX (double x)
-    void RotateY (double x)
-    void RotateZ (double x)
-    void Print()
-
 cdef char* str_to_char(str name):
   """Convert python string to char*"""
   cdef bytes name_bytes = name.encode()
   cdef char* c_name = name_bytes
   return c_name
 
-cdef class hipo4_reader:
-  """Hipo_reader based on hipo::reader class"""
-  # Define hipo::reader class
-  cdef reader*c_reader
-  def __cinit__(self, filename):
-    """Initialize hipo_reader with a file"""
-    self.c_reader = new reader()
-    self.open(filename)
-
-  def __str__(self):
-    return self.jsonString()
-
-  def __repr__(self):
-    return self.jsonString()
-  cdef void open(self, filename):
-    """Open a new hipo file with the hipo::reader"""
-    cdef bytes filename_bytes = filename.encode()
-    cdef char* c_filename = filename_bytes
-    self.c_reader.open(c_filename)
-
-  def next(self):
-    """Load the next vaules of the ntuple [Returns true if there is an event]"""
-    return self.c_reader.next()
-
-  cdef bool c_next(self):
-    """Load the next vaules of the ntuple [Returns true if there is an event]"""
-    return self.c_reader.next()
-
-  def __next__(self):
-    """Load the next vaules of the ntuple [Returns true if there is an event]"""
-    return self.c_reader.next()
-
-cdef class LorentzVector:
-  cdef TLorentzVector*c_TLorentzVector
-  def __cinit__(LorentzVector self, double px, double py, double pz, **kwargs):
-    if "energy" in kwargs:
-      self.c_TLorentzVector = new TLorentzVector(px, py, pz, kwargs["energy"])
-    elif "mass" in kwargs:
-      self.c_TLorentzVector = new TLorentzVector()
-      self.c_TLorentzVector.SetXYZM(px, py, pz, kwargs["mass"])
-    elif "pid" in kwargs:
-      self.c_TLorentzVector = new TLorentzVector()
-      self.c_TLorentzVector.SetXYZM(px, py, pz, part_mass[kwargs["pid"]])
-    else:
-      self.c_TLorentzVector = new TLorentzVector(px, py, pz, 0)
-  def __dealloc__(self):
-    free(self.c_TLorentzVector)
-  def __del__(self):
-    free(self.c_TLorentzVector)
-  def __add__(LorentzVector self, LorentzVector other):
-    cdef double X = self.c_TLorentzVector.Px() + other.c_TLorentzVector.Px()
-    cdef double Y = self.c_TLorentzVector.Py() + other.c_TLorentzVector.Py()
-    cdef double Z = self.c_TLorentzVector.Pz() + other.c_TLorentzVector.Pz()
-    cdef double E = self.c_TLorentzVector.E() + other.c_TLorentzVector.E()
-    return LorentzVector(X, Y, Z, energy=E)
-  def __iadd__(LorentzVector self, LorentzVector other):
-    cdef double X = self.c_TLorentzVector.Px() + other.c_TLorentzVector.Px()
-    cdef double Y = self.c_TLorentzVector.Py() + other.c_TLorentzVector.Py()
-    cdef double Z = self.c_TLorentzVector.Pz() + other.c_TLorentzVector.Pz()
-    cdef double E = self.c_TLorentzVector.E() + other.c_TLorentzVector.E()
-    return LorentzVector(X, Y, Z, energy=E)
-  def __sub__(LorentzVector self, LorentzVector other):
-    cdef double X = self.c_TLorentzVector.Px() - other.c_TLorentzVector.Px()
-    cdef double Y = self.c_TLorentzVector.Py() - other.c_TLorentzVector.Py()
-    cdef double Z = self.c_TLorentzVector.Pz() - other.c_TLorentzVector.Pz()
-    cdef double E = self.c_TLorentzVector.E() - other.c_TLorentzVector.E()
-    return LorentzVector(X, Y, Z, energy=E)
-  def __isub__(LorentzVector self, LorentzVector other):
-    cdef double X = self.c_TLorentzVector.Px() - other.c_TLorentzVector.Px()
-    cdef double Y = self.c_TLorentzVector.Py() - other.c_TLorentzVector.Py()
-    cdef double Z = self.c_TLorentzVector.Pz() - other.c_TLorentzVector.Pz()
-    cdef double E = self.c_TLorentzVector.E() - other.c_TLorentzVector.E()
-    return LorentzVector(X, Y, Z, energy=E)
-  def __str__(self):
-    return "Px {0: 0.2f} | Py {1: 0.2f} | Pz {2: 0.2f} | E {3: 0.2f}".format(self.Px,self.Py ,self.Pz, self.E)
-  def __repr__(self):
-    return self.__str__()
-  def MomentumVec(LorentzVector self):
-    return ThreeVector(self.c_TLorentzVector.Px(), self.c_TLorentzVector.Py(), self.c_TLorentzVector.Pz())
-  def SetPxPyPzM(LorentzVector self, double px, double py, double pz, double mass):
-    self.c_TLorentzVector.SetXYZM(px, py, pz, mass)
-  @property
-  def Px(LorentzVector self):
-    return self.c_TLorentzVector.Px()
-  @property
-  def Py(LorentzVector self):
-    return self.c_TLorentzVector.Py()
-  @property
-  def Pz(LorentzVector self):
-    return self.c_TLorentzVector.Pz()
-  @property
-  def P(LorentzVector self):
-    return self.c_TLorentzVector.P()
-  @property
-  def E(LorentzVector self):
-    return self.c_TLorentzVector.E()
-  @property
-  def Energy(LorentzVector self):
-    return self.c_TLorentzVector.E()
-  @property
-  def Theta(LorentzVector self):
-    return self.c_TLorentzVector.Theta()
-  @property
-  def CosTheta(LorentzVector self):
-    return self.c_TLorentzVector.CosTheta()
-  @property
-  def Phi(LorentzVector self):
-    return self.c_TLorentzVector.Phi()
-  @property
-  def Rho(LorentzVector self):
-    return self.c_TLorentzVector.Rho()
-  @property
-  def Perp2(LorentzVector self):
-    return self.c_TLorentzVector.Perp2()
-  @property
-  def Pt(LorentzVector self):
-    return self.c_TLorentzVector.Pt()
-  @property
-  def Perp(LorentzVector self):
-    return self.c_TLorentzVector.Perp()
-  @property
-  def Et2(LorentzVector self):
-    return self.c_TLorentzVector.Et2()
-  @property
-  def Et(LorentzVector self):
-    return self.c_TLorentzVector.Et()
-  @property
-  def Mag2(LorentzVector self):
-    return self.c_TLorentzVector.Mag2()
-  @property
-  def M2(LorentzVector self):
-    return self.c_TLorentzVector.M2()
-  @property
-  def Mag(LorentzVector self):
-    return self.c_TLorentzVector.Mag()
-  @property
-  def M(LorentzVector self):
-    return self.c_TLorentzVector.M()
-  @property
-  def Mt2(LorentzVector self):
-    return self.c_TLorentzVector.Mt2()
-  @property
-  def Mt(LorentzVector self):
-    return self.c_TLorentzVector.Mt()
-  @property
-  def Beta(LorentzVector self):
-    return self.c_TLorentzVector.Beta()
-  @property
-  def Gamma(LorentzVector self):
-    return self.c_TLorentzVector.Gamma()
-  @property
-  def Plus(LorentzVector self):
-    return self.c_TLorentzVector.Plus()
-  @property
-  def Minus(LorentzVector self):
-    return self.c_TLorentzVector.Minus()
-  @property
-  def Rapidity(LorentzVector self):
-    return self.c_TLorentzVector.Rapidity()
-  @property
-  def Eta(LorentzVector self):
-    return self.c_TLorentzVector.Eta()
-  @property
-  def PseudoRapidity(LorentzVector self):
-    return self.c_TLorentzVector.PseudoRapidity()
-
-cdef class ThreeVector:
-  cdef TVector3*c_TVector3
-  def __cinit__(ThreeVector self, double vx, double vy, double vz):
-    c_TVector3 = new TVector3(vx, vy, vz)
-  def __add__(ThreeVector self, ThreeVector other):
-    cdef double X = self.c_TVector3.x() + other.c_TVector3.x()
-    cdef double Y = self.c_TVector3.y() + other.c_TVector3.y()
-    cdef double Z = self.c_TVector3.z() + other.c_TVector3.z()
-    return ThreeVector(X, Y, Z)
-  def __str__(ThreeVector self):
-    return "Vx {0: 0.2f} | Vy {1: 0.2f} | Vz {2: 0.2f}".format(self.vx,self.vy ,self.vz)
-  def __repr__(self):
-    return self.__str__()
-  def __dealloc__(self):
-    free(self.c_TVector3)
-  def __del__(self):
-    free(self.c_TVector3)
-  @property
-  def x(ThreeVector self):
-    return self.c_TVector3.x()
-  @property
-  def y(ThreeVector self):
-    return self.c_TVector3.y()
-  @property
-  def z(ThreeVector self):
-    return self.c_TVector3.z()
-  @property
-  def X(ThreeVector self):
-    return self.c_TVector3.X()
-  @property
-  def Y(ThreeVector self):
-    return self.c_TVector3.Y()
-  @property
-  def Z(ThreeVector self):
-    return self.c_TVector3.Z()
-  @property
-  def Px(ThreeVector self):
-    return self.c_TVector3.Px()
-  @property
-  def Py(ThreeVector self):
-    return self.c_TVector3.Py()
-  @property
-  def Pz(ThreeVector self):
-    return self.c_TVector3.Pz()
-  @property
-  def Phi(ThreeVector self):
-    return self.c_TVector3.Phi()
-  @property
-  def Theta(ThreeVector self):
-    return self.c_TVector3.Theta()
-  @property
-  def CosTheta(ThreeVector self):
-    return self.c_TVector3.CosTheta()
-  @property
-  def Mag2(ThreeVector self):
-    return self.c_TVector3.Mag2()
-  @property
-  def Mag(ThreeVector self):
-    return self.c_TVector3.Mag()
-  @property
-  def Perp2(ThreeVector self):
-    return self.c_TVector3.Perp2()
-  @property
-  def Pt(ThreeVector self):
-    return self.c_TVector3.Pt()
-  @property
-  def Perp(ThreeVector self):
-    return self.c_TVector3.Perp()
-  @property
-  def Eta (ThreeVector self):
-    return self.c_TVector3.Eta()
-
-
-cdef class Particle:
-  cdef:
-    int pid, charge
-    double mass, beta
-    LorentzVector FourVector
-    ThreeVector Vertex
-  def __cinit__(Particle self, double px, double py, double pz, int pid, double vx, double vy, double vz, int charge, double beta):
-    self.pid = pid
-    self.charge = charge
-    self.beta = beta
-    self.mass = part_mass.get(self.pid, 0)
-    self.Vertex = ThreeVector(vx, vy, vz)
-    self.FourVector = LorentzVector(px, py, pz, mass=self.mass)
-  def __add__(Particle self, Particle other):
-    return self.FourVector + other.FourVector
-  def __sub__(Particle self, Particle other):
-    return self.FourVector - other.FourVector
-  def __str__(Particle self):
-    return "pid {:5d} | ".format(self.pid) + self.FourVector.__str__()
-  def __repr__(Particle self):
-    return self.__str__()
-  @property
-  def FourVector(Particle self):
-    return self.FourVector
-  @property
-  def Vertex(Particle self):
-    return self.Vertex
-  @property
-  def pid(Particle self):
-    return self.pid
-  @property
-  def charge(Particle self):
-    return self.charge
-  @property
-  def mass(Particle self):
-    return self.mass
-  @property
-  def beta(Particle self):
-    return self.beta
-  @property
-  def Px(Particle self):
-    return self.FourVector.Px
-  @property
-  def Py(Particle self):
-    return self.FourVector.Py
-  @property
-  def Pz(Particle self):
-    return self.FourVector.Pz
-  @property
-  def Vx(Particle self):
-    return self.Vertex.x
-  @property
-  def Vy(Particle self):
-    return self.Vertex.y
-  @property
-  def Vz(Particle self):
-    return self.Vertex.z
-  @property
-  def P(Particle self):
-    return self.FourVector.P
-  @property
-  def E(Particle self):
-    return self.FourVector.E
-  @property
-  def Energy(Particle self):
-    return self.FourVector.E
-  @property
-  def Theta(Particle self):
-    return self.FourVector.Theta
-  @property
-  def CosTheta(Particle self):
-    return self.FourVector.CosTheta
-  @property
-  def Phi(Particle self):
-    return self.FourVector.Phi
-  @property
-  def Rho(Particle self):
-    return self.FourVector.Rho
-  @property
-  def Perp2(Particle self):
-    return self.FourVector.Perp2
-  @property
-  def Pt(Particle self):
-    return self.FourVector.Pt
-  @property
-  def Perp(Particle self):
-    return self.FourVector.Perp
-  @property
-  def Et2(Particle self):
-    return self.FourVector.Et2
-  @property
-  def Et(Particle self):
-    return self.FourVector.Et
-  @property
-  def Mag2(Particle self):
-    return self.FourVector.Mag2
-  @property
-  def M2(Particle self):
-    return self.FourVector.M2
-  @property
-  def Mag(Particle self):
-    return self.FourVector.Mag
-  @property
-  def M(Particle self):
-    return self.FourVector.M
-  @property
-  def Mt2(Particle self):
-    return self.FourVector.Mt2
-  @property
-  def Mt(Particle self):
-    return self.FourVector.Mt
-  @property
-  def Beta(Particle self):
-    return self.FourVector.Beta
-  @property
-  def Gamma(Particle self):
-    return self.FourVector.Gamma
-  @property
-  def Plus(Particle self):
-    return self.FourVector.Plus
-  @property
-  def Minus(Particle self):
-    return self.FourVector.Minus
-  @property
-  def Rapidity(Particle self):
-    return self.FourVector.Rapidity
-  @property
-  def Eta(Particle self):
-    return self.FourVector.Eta
-  @property
-  def PseudoRapidity(Particle self):
-    return self.FourVector.PseudoRapidity
-
-
 cdef class Event:
   cdef:
-    hipo4_reader hiporeader
-    int run
-
-    public list particle, ids
-
-  def __cinit__(Event self, hipo4_reader reader):
-    self.hiporeader = reader
+    reader*c_hiporeader
+    dictionary*c_dict
+    event*c_event
+    bank*c_ForwardTagger
+    bank*c_VertDoca
+    bank*c_Track
+    bank*c_Cherenkov
+    bank*c_Event
+    bank*c_Particle
+    bank*c_Scintillator
+    bank*c_Calorimeter
+    bank*c_CovMat
+  def __cinit__(Event self, string filename):
+    self.c_hiporeader = new reader(filename)
+    self.c_dict = self.c_hiporeader.dictionary()
+    self.c_event = new event()
+    self.c_ForwardTagger = new bank(self.c_dict.getSchema("REC::ForwardTagger".encode('utf8')))
+    self.c_VertDoca = new bank(self.c_dict.getSchema("REC::VertDoca".encode('utf8')))
+    self.c_Track = new bank(self.c_dict.getSchema("REC::Track".encode('utf8')))
+    self.c_Cherenkov = new bank(self.c_dict.getSchema("REC::Cherenkov".encode('utf8')))
+    self.c_Event = new bank(self.c_dict.getSchema("REC::Event".encode('utf8')))
+    self.c_Particle = new bank(self.c_dict.getSchema("REC::Particle".encode('utf8')))
+    self.c_Scintillator = new bank(self.c_dict.getSchema("REC::Scintillator".encode('utf8')))
+    self.c_Calorimeter = new bank(self.c_dict.getSchema("REC::Calorimeter".encode('utf8')))
+    self.c_CovMat = new bank(self.c_dict.getSchema("REC::CovMat".encode('utf8')))
 
   def __len__(Event self):
     return self._pid.getLength()
   def __iter__(Event self):
       return self
+  def __str__(Event self):
+    out = ""
+    out += self.c_dict.getSchema("REC::ForwardTagger".encode('utf8')).json()
+    out += self.c_dict.getSchema("REC::VertDoca".encode('utf8')).json()
+    out += self.c_dict.getSchema("REC::Track".encode('utf8')).json()
+    out += self.c_dict.getSchema("REC::Cherenkov".encode('utf8')).json()
+    out += self.c_dict.getSchema("REC::Event".encode('utf8')).json()
+    out += self.c_dict.getSchema("REC::Particle".encode('utf8')).json()
+    out += self.c_dict.getSchema("REC::Scintillator".encode('utf8')).json()
+    out += self.c_dict.getSchema("REC::Calorimeter".encode('utf8')).json()
+    out += self.c_dict.getSchema("REC::CovMat".encode('utf8')).json()
+    return out
   def __next__(Event self):
-    if self.hiporeader.c_next():
-      self.loadParts()
+    if self.c_hiporeader.next():
+      self.c_hiporeader.read(self.c_event[0])
+      self.c_event.getStructure(self.c_Particle[0])
+      self.c_event.getStructure(self.c_ForwardTagger[0])
+      self.c_event.getStructure(self.c_VertDoca[0])
+      self.c_event.getStructure(self.c_Track[0])
+      self.c_event.getStructure(self.c_Cherenkov[0])
+      self.c_event.getStructure(self.c_Event[0])
+      self.c_event.getStructure(self.c_Scintillator[0])
+      self.c_event.getStructure(self.c_Calorimeter[0])
+      self.c_event.getStructure(self.c_CovMat[0])
       return self
     else:
       raise StopIteration
-  cdef void loadParts(Event self):
-    if self._run.getLength() > 0:
-      self.run = self._run[0]
-    cdef int l = len(self)
-    cdef int i = 0
-    self.particle = [None] * l
-    self.ids = [None] * l
-    for i in xrange(0, l):
-      self.ids[i] = self._pid[i]
-      self.particle[i] = Particle(self._px[i], self._py[i], self._pz[i], self._pid[i],
-                          self._vx[i], self._vy[i], self._vz[i], self._charge[i], self._beta[i])
+  def __len__(Event self):
+    return self.c_Particle.getRows()
+  def pid(Event self, int i):
+    return self.c_Particle.getFloat("pid".encode('utf8') ,i)
+  def px(Event self, int i):
+    return self.c_Particle.getFloat("px".encode('utf8') ,i)
+  def py(Event self, int i):
+    return self.c_Particle.getFloat("py".encode('utf8') ,i)
+  def pz(Event self, int i):
+    return self.c_Particle.getFloat("pz".encode('utf8') ,i)
+  def vx(Event self, int i):
+    return self.c_Particle.getFloat("vx".encode('utf8') ,i)
+  def vy(Event self, int i):
+    return self.c_Particle.getFloat("vy".encode('utf8') ,i)
+  def vz(Event self, int i):
+    return self.c_Particle.getFloat("vz".encode('utf8') ,i)
+  def charge(Event self, int i):
+    return self.c_Particle.getByte("charge".encode('utf8'), i)
+  def beta(Event self, int i):
+    return self.c_Particle.getFloat("beta".encode('utf8'), i)
+  def chi2pid(Event self, int i):
+    return self.c_Particle.getFloat("chi2pid".encode('utf8'), i)
+  def status(Event self, int i):
+    return self.c_Particle.getShort("status".encode('utf8'), i)
+
+  def event_len(Event self):
+    return self.c_Event.getRows()
+  def NRUN(Event self):
+    return self.c_Event.getInt("NRUN".encode('utf8'),0)
+  def NEVENT(Event self):
+    return self.c_Event.getInt("NEVENT".encode('utf8'),0)
+  def EVNTime(Event self):
+    return self.c_Event.getFloat("EVNTime".encode('utf8'),0)
+  def TYPE(Event self):
+    return self.c_Event.getByte("TYPE".encode('utf8'),0)
+  def EvCAT(Event self):
+    return self.c_Event.getShort("EvCAT".encode('utf8'),0)
+  def NPGP(Event self):
+    return self.c_Event.getShort("NPGP".encode('utf8'),0)
+  def TRG(Event self):
+    return self.c_Event.getLong("TRG".encode('utf8'),0)
+  def BCG(Event self):
+    return self.c_Event.getFloat("BCG".encode('utf8'),0)
+  def LT(Event self):
+    return self.c_Event.getDouble("LT".encode('utf8'),0)
+  def STTime(Event self):
+    return self.c_Event.getFloat("STTime".encode('utf8'),0)
+  def RFTime(Event self):
+    return self.c_Event.getFloat("RFTime".encode('utf8'),0)
+  def Helic(Event self):
+    return self.c_Event.getByte("Helic".encode('utf8'),0)
+  def PTIME(Event self):
+    return self.c_Event.getFloat("PTIME".encode('utf8'),0)
+
+  def ft_len(Event self):
+    return self.c_ForwardTagger.getRows()
+  def ft_pindex(Event self, int i):
+    return self.c_ForwardTagger.getShort("pindex".encode('utf8'), i)
+  def ft_detector(Event self, int i):
+    return self.c_ForwardTagger.getByte("detector".encode('utf8'), i)
+  def ft_energy(Event self, int i):
+    return self.c_ForwardTagger.getFloat("energy".encode('utf8'), i)
+  def ft_time(Event self, int i):
+    return self.c_ForwardTagger.getFloat("time".encode('utf8'), i)
+  def ft_path(Event self, int i):
+    return self.c_ForwardTagger.getFloat("path".encode('utf8'), i)
+  def ft_chi2(Event self, int i):
+    return self.c_ForwardTagger.getFloat("chi2".encode('utf8'), i)
+  def ft_x(Event self, int i):
+    return self.c_ForwardTagger.getFloat("x".encode('utf8'), i)
+  def ft_y(Event self, int i):
+    return self.c_ForwardTagger.getFloat("y".encode('utf8'), i)
+  def ft_z(Event self, int i):
+    return self.c_ForwardTagger.getFloat("z".encode('utf8'), i)
+  def ft_dx(Event self, int i):
+    return self.c_ForwardTagger.getFloat("dx".encode('utf8'), i)
+  def ft_dy(Event self, int i):
+    return self.c_ForwardTagger.getFloat("dy".encode('utf8'), i)
+  def ft_radius(Event self, int i):
+    return self.c_ForwardTagger.getFloat("radius".encode('utf8'), i)
+  def ft_size(Event self, int i):
+    return self.c_ForwardTagger.getShort("size".encode('utf8'), i)
+  def ft_status(Event self, int i):
+    return self.c_ForwardTagger.getShort("status".encode('utf8'), i)
+
+  def vd_len(Event self):
+    return self.c_VertDoca.getRows()
+  def vd_index1(Event self, int i):
+    return self.c_VertDoca.getShort("index1".encode('utf8'),i)
+  def vd_index2(Event self, int i):
+    return self.c_VertDoca.getShort("index2".encode('utf8'),i)
+  def vd_x(Event self, int i):
+    return self.c_VertDoca.getFloat("x".encode('utf8'),i)
+  def vd_y(Event self, int i):
+    return self.c_VertDoca.getFloat("y".encode('utf8'),i)
+  def vd_z(Event self, int i):
+    return self.c_VertDoca.getFloat("z".encode('utf8'),i)
+  def vd_x1(Event self, int i):
+    return self.c_VertDoca.getFloat("x1".encode('utf8'),i)
+  def vd_y1(Event self, int i):
+    return self.c_VertDoca.getFloat("y1".encode('utf8'),i)
+  def vd_z1(Event self, int i):
+    return self.c_VertDoca.getFloat("z1".encode('utf8'),i)
+  def vd_cx1(Event self, int i):
+    return self.c_VertDoca.getFloat("cx1".encode('utf8'),i)
+  def vd_cy1(Event self, int i):
+    return self.c_VertDoca.getFloat("cy1".encode('utf8'),i)
+  def vd_cz1(Event self, int i):
+    return self.c_VertDoca.getFloat("cz1".encode('utf8'),i)
+  def vd_x2(Event self, int i):
+    return self.c_VertDoca.getFloat("x2".encode('utf8'),i)
+  def vd_y2(Event self, int i):
+    return self.c_VertDoca.getFloat("y2".encode('utf8'),i)
+  def vd_z2(Event self, int i):
+    return self.c_VertDoca.getFloat("z2".encode('utf8'),i)
+  def vd_cx2(Event self, int i):
+    return self.c_VertDoca.getFloat("cx2".encode('utf8'),i)
+  def vd_cy2(Event self, int i):
+    return self.c_VertDoca.getFloat("cy2".encode('utf8'),i)
+  def vd_cz2(Event self, int i):
+    return self.c_VertDoca.getFloat("cz2".encode('utf8'),i)
+  def vd_r(Event self, int i):
+    return self.c_VertDoca.getFloat("r".encode('utf8'),i)
+
+  def trk_len(Event self):
+      return self.c_Track.getRows()
+  def trk_index(Event self, int i):
+    return self.c_Track.getShort("index".encode('utf8'),i)
+  def trk_pindex(Event self, int i):
+    return self.c_Track.getShort("pindex".encode('utf8'),i)
+  def trk_detector(Event self, int i):
+    return self.c_Track.getByte("detector".encode('utf8'),i)
+  def trk_sector(Event self, int i):
+    return self.c_Track.getByte("sector".encode('utf8'),i)
+  def trk_status(Event self, int i):
+    return self.c_Track.getShort("status".encode('utf8'),i)
+  def trk_q(Event self, int i):
+    return self.c_Track.getByte("q".encode('utf8'),i)
+  def trk_chi2(Event self, int i):
+    return self.c_Track.getFloat("chi2".encode('utf8'),i)
+  def trk_NDF(Event self, int i):
+    return self.c_Track.getShort("NDF".encode('utf8'),i)
+  def trk_px_nomm(Event self, int i):
+    return self.c_Track.getFloat("px_nomm".encode('utf8'),i)
+  def trk_py_nomm(Event self, int i):
+    return self.c_Track.getFloat("py_nomm".encode('utf8'),i)
+  def trk_pz_nomm(Event self, int i):
+    return self.c_Track.getFloat("pz_nomm".encode('utf8'),i)
+  def trk_vx_nomm(Event self, int i):
+    return self.c_Track.getFloat("vx_nomm".encode('utf8'),i)
+  def trk_vy_nomm(Event self, int i):
+    return self.c_Track.getFloat("vy_nomm".encode('utf8'),i)
+  def trk_vz_nomm(Event self, int i):
+    return self.c_Track.getFloat("vz_nomm".encode('utf8'),i)
+  def trk_chi2_nomm(Event self, int i):
+    return self.c_Track.getFloat("chi2_nomm".encode('utf8'),i)
+  def trk_NDF_nomm(Event self, int i):
+    return self.c_Track.getShort("NDF_nomm".encode('utf8'),i)
+
+  def chern_len(Event self):
+      return self.c_Cherenkov.getRows()
+  def chern_index(Event self, int i):
+    return self.c_Cherenkov.getShort("index".encode('utf8'),i)
+  def chern_pindex(Event self, int i):
+    return self.c_Cherenkov.getShort("pindex".encode('utf8'),i)
+  def chern_detector(Event self, int i):
+    return self.c_Cherenkov.getByte("detector".encode('utf8'),i)
+  def chern_sector(Event self, int i):
+    return self.c_Cherenkov.getByte("sector".encode('utf8'),i)
+  def chern_nphe(Event self, int i):
+    return self.c_Cherenkov.getFloat("nphe".encode('utf8'),i)
+  def chern_time(Event self, int i):
+    return self.c_Cherenkov.getFloat("time".encode('utf8'),i)
+  def chern_path(Event self, int i):
+    return self.c_Cherenkov.getFloat("path".encode('utf8'),i)
+  def chern_chi2(Event self, int i):
+    return self.c_Cherenkov.getFloat("chi2".encode('utf8'),i)
+  def chern_x(Event self, int i):
+    return self.c_Cherenkov.getFloat("x".encode('utf8'),i)
+  def chern_y(Event self, int i):
+    return self.c_Cherenkov.getFloat("y".encode('utf8'),i)
+  def chern_z(Event self, int i):
+    return self.c_Cherenkov.getFloat("z".encode('utf8'),i)
+  def chern_theta(Event self, int i):
+    return self.c_Cherenkov.getFloat("theta".encode('utf8'),i)
+  def chern_phi(Event self, int i):
+    return self.c_Cherenkov.getFloat("phi".encode('utf8'),i)
+  def chern_dtheta(Event self, int i):
+    return self.c_Cherenkov.getFloat("dtheta".encode('utf8'),i)
+  def chern_dphi(Event self, int i):
+    return self.c_Cherenkov.getFloat("dphi".encode('utf8'),i)
+  def chern_status(Event self, int i):
+    return self.c_Cherenkov.getShort("status".encode('utf8'),i)
+
+  def sc_len(Event self):
+    return self.c_Scintillator.getRows()
+  def sc_index(Event self, int i):
+    return self.c_Scintillator.getShort("index".encode('utf8'),i)
+  def sc_pindex(Event self, int i):
+    return self.c_Scintillator.getShort("pindex".encode('utf8'),i)
+  def sc_detector(Event self, int i):
+    return self.c_Scintillator.getByte("detector".encode('utf8'),i)
+  def sc_sector(Event self, int i):
+    return self.c_Scintillator.getByte("sector".encode('utf8'),i)
+  def sc_layer(Event self, int i):
+    return self.c_Scintillator.getByte("layer".encode('utf8'),i)
+  def sc_component(Event self, int i):
+    return self.c_Scintillator.getShort("component".encode('utf8'),i)
+  def sc_energy(Event self, int i):
+    return self.c_Scintillator.getFloat("energy".encode('utf8'),i)
+  def sc_time(Event self, int i):
+    return self.c_Scintillator.getFloat("time".encode('utf8'),i)
+  def sc_path(Event self, int i):
+    return self.c_Scintillator.getFloat("path".encode('utf8'),i)
+  def sc_chi2(Event self, int i):
+    return self.c_Scintillator.getFloat("chi2".encode('utf8'),i)
+  def sc_x(Event self, int i):
+    return self.c_Scintillator.getFloat("x".encode('utf8'),i)
+  def sc_y(Event self, int i):
+    return self.c_Scintillator.getFloat("y".encode('utf8'),i)
+  def sc_z(Event self, int i):
+    return self.c_Scintillator.getFloat("z".encode('utf8'),i)
+  def sc_hx(Event self, int i):
+    return self.c_Scintillator.getFloat("hx".encode('utf8'),i)
+  def sc_hy(Event self, int i):
+    return self.c_Scintillator.getFloat("hy".encode('utf8'),i)
+  def sc_hz(Event self, int i):
+    return self.c_Scintillator.getFloat("hz".encode('utf8'),i)
+  def sc_status(Event self, int i):
+    return self.c_Scintillator.getShort("status".encode('utf8'),i)
+
+  def cal_len(Event self):
+    return self.c_Calorimeter.getRows()
+  def cal_in(Event self, int i):
+    return self.c_Calorimeter.getShort("index".encode('utf8'),i)
+  def cal_pi(Event self, int i):
+    return self.c_Calorimeter.getShort("pindex".encode('utf8'),i)
+  def cal_de(Event self, int i):
+    return self.c_Calorimeter.getByte("detector".encode('utf8'),i)
+  def cal_se(Event self, int i):
+    return self.c_Calorimeter.getByte("sector".encode('utf8'),i)
+  def cal_la(Event self, int i):
+    return self.c_Calorimeter.getByte("layer".encode('utf8'),i)
+  def cal_en(Event self, int i):
+    return self.c_Calorimeter.getFloat("energy".encode('utf8'),i)
+  def cal_ti(Event self, int i):
+    return self.c_Calorimeter.getFloat("time".encode('utf8'),i)
+  def cal_pa(Event self, int i):
+    return self.c_Calorimeter.getFloat("path".encode('utf8'),i)
+  def cal_ch(Event self, int i):
+    return self.c_Calorimeter.getFloat("chi2".encode('utf8'),i)
+  def cal_x(Event self, int i):
+    return self.c_Calorimeter.getFloat("x".encode('utf8'),i)
+  def cal_y(Event self, int i):
+    return self.c_Calorimeter.getFloat("y".encode('utf8'),i)
+  def cal_z(Event self, int i):
+    return self.c_Calorimeter.getFloat("z".encode('utf8'),i)
+  def cal_hx(Event self, int i):
+    return self.c_Calorimeter.getFloat("hx".encode('utf8'),i)
+  def cal_hy(Event self, int i):
+    return self.c_Calorimeter.getFloat("hy".encode('utf8'),i)
+  def cal_hz(Event self, int i):
+    return self.c_Calorimeter.getFloat("hz".encode('utf8'),i)
+  def cal_lu(Event self, int i):
+    return self.c_Calorimeter.getFloat("lu".encode('utf8'),i)
+  def cal_lv(Event self, int i):
+    return self.c_Calorimeter.getFloat("lv".encode('utf8'),i)
+  def cal_lw(Event self, int i):
+    return self.c_Calorimeter.getFloat("lw".encode('utf8'),i)
+  def cal_du(Event self, int i):
+    return self.c_Calorimeter.getFloat("du".encode('utf8'),i)
+  def cal_dv(Event self, int i):
+    return self.c_Calorimeter.getFloat("dv".encode('utf8'),i)
+  def cal_dw(Event self, int i):
+    return self.c_Calorimeter.getFloat("dw".encode('utf8'),i)
+  def cal_m2(Event self, int i):
+    return self.c_Calorimeter.getFloat("m2u".encode('utf8'),i)
+  def cal_m2(Event self, int i):
+    return self.c_Calorimeter.getFloat("m2v".encode('utf8'),i)
+  def cal_m2(Event self, int i):
+    return self.c_Calorimeter.getFloat("m2w".encode('utf8'),i)
+  def cal_m3(Event self, int i):
+    return self.c_Calorimeter.getFloat("m3u".encode('utf8'),i)
+  def cal_m3(Event self, int i):
+    return self.c_Calorimeter.getFloat("m3v".encode('utf8'),i)
+  def cal_m3(Event self, int i):
+    return self.c_Calorimeter.getFloat("m3w".encode('utf8'),i)
+  def cal_st(Event self, int i):
+    return self.c_Calorimeter.getShort("status".encode('utf8'),i)

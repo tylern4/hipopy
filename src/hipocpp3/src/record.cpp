@@ -66,8 +66,6 @@ namespace hipo {
 
     if (dataBufferLengthBytes > recordCompressedBuffer.size()) {
       int newSize = dataBufferLengthBytes + 5 * 1024;
-      // printf("---> resizing internal compressed buffer size to from %ld to %d\n",
-      // recordCompressedBuffer.size(), newSize);
       recordCompressedBuffer.resize(newSize);
     }
     // dataBufferLengthBytes    -= compressedDataLengthPadding;

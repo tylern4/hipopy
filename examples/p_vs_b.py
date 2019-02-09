@@ -8,13 +8,13 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.svm import SVC
 
-from hipopy import LorentzVector, hipo_reader
+from hipopy3 import LorentzVector, hipo3_reader
 
 px_py_pz_beta = []
 true_pid = []
 for f in sys.argv[1:]:
     print("Loading {}".format(f))
-    reader = hipo_reader(f)
+    reader = hipo3_reader(f)
     pid = reader.getIntNode(u"REC::Particle", u"pid")
     px = reader.getFloatNode(u"REC::Particle", u"px")
     py = reader.getFloatNode(u"REC::Particle", u"py")
