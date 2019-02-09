@@ -110,8 +110,6 @@ cdef class Event:
     self.c_Calorimeter = new bank(self.c_dict.getSchema("REC::Calorimeter".encode('utf8')))
     self.c_CovMat = new bank(self.c_dict.getSchema("REC::CovMat".encode('utf8')))
 
-  def __len__(Event self):
-    return self._pid.getLength()
   def __iter__(Event self):
       return self
   def __str__(Event self):
@@ -144,7 +142,7 @@ cdef class Event:
   def __len__(Event self):
     return self.c_Particle.getRows()
   def pid(Event self, int i):
-    return self.c_Particle.getFloat("pid".encode('utf8') ,i)
+    return self.c_Particle.getInt("pid".encode('utf8') ,i)
   def px(Event self, int i):
     return self.c_Particle.getFloat("px".encode('utf8') ,i)
   def py(Event self, int i):
@@ -374,23 +372,23 @@ cdef class Event:
 
   def cal_len(Event self):
     return self.c_Calorimeter.getRows()
-  def cal_in(Event self, int i):
+  def cal_index(Event self, int i):
     return self.c_Calorimeter.getShort("index".encode('utf8'),i)
-  def cal_pi(Event self, int i):
+  def cal_pindex(Event self, int i):
     return self.c_Calorimeter.getShort("pindex".encode('utf8'),i)
-  def cal_de(Event self, int i):
+  def cal_detector(Event self, int i):
     return self.c_Calorimeter.getByte("detector".encode('utf8'),i)
-  def cal_se(Event self, int i):
+  def cal_sector(Event self, int i):
     return self.c_Calorimeter.getByte("sector".encode('utf8'),i)
-  def cal_la(Event self, int i):
+  def cal_layer(Event self, int i):
     return self.c_Calorimeter.getByte("layer".encode('utf8'),i)
-  def cal_en(Event self, int i):
+  def cal_energy(Event self, int i):
     return self.c_Calorimeter.getFloat("energy".encode('utf8'),i)
-  def cal_ti(Event self, int i):
+  def cal_time(Event self, int i):
     return self.c_Calorimeter.getFloat("time".encode('utf8'),i)
-  def cal_pa(Event self, int i):
+  def cal_path(Event self, int i):
     return self.c_Calorimeter.getFloat("path".encode('utf8'),i)
-  def cal_ch(Event self, int i):
+  def cal_chi2(Event self, int i):
     return self.c_Calorimeter.getFloat("chi2".encode('utf8'),i)
   def cal_x(Event self, int i):
     return self.c_Calorimeter.getFloat("x".encode('utf8'),i)
@@ -416,17 +414,17 @@ cdef class Event:
     return self.c_Calorimeter.getFloat("dv".encode('utf8'),i)
   def cal_dw(Event self, int i):
     return self.c_Calorimeter.getFloat("dw".encode('utf8'),i)
-  def cal_m2(Event self, int i):
+  def cal_m2u(Event self, int i):
     return self.c_Calorimeter.getFloat("m2u".encode('utf8'),i)
-  def cal_m2(Event self, int i):
+  def cal_m2v(Event self, int i):
     return self.c_Calorimeter.getFloat("m2v".encode('utf8'),i)
-  def cal_m2(Event self, int i):
+  def cal_m2w(Event self, int i):
     return self.c_Calorimeter.getFloat("m2w".encode('utf8'),i)
-  def cal_m3(Event self, int i):
+  def cal_m3u(Event self, int i):
     return self.c_Calorimeter.getFloat("m3u".encode('utf8'),i)
-  def cal_m3(Event self, int i):
+  def cal_m3v(Event self, int i):
     return self.c_Calorimeter.getFloat("m3v".encode('utf8'),i)
-  def cal_m3(Event self, int i):
+  def cal_m3w(Event self, int i):
     return self.c_Calorimeter.getFloat("m3w".encode('utf8'),i)
-  def cal_st(Event self, int i):
+  def cal_status(Event self, int i):
     return self.c_Calorimeter.getShort("status".encode('utf8'),i)
