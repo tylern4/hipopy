@@ -100,29 +100,29 @@ cdef class Event:
     self.c_hiporeader = new reader(filename)
     self.c_dict = self.c_hiporeader.dictionary()
     self.c_event = new event()
-    self.c_ForwardTagger = new bank(self.c_dict.getSchema("REC::ForwardTagger".encode('utf8')))
-    self.c_VertDoca = new bank(self.c_dict.getSchema("REC::VertDoca".encode('utf8')))
-    self.c_Track = new bank(self.c_dict.getSchema("REC::Track".encode('utf8')))
-    self.c_Cherenkov = new bank(self.c_dict.getSchema("REC::Cherenkov".encode('utf8')))
-    self.c_Event = new bank(self.c_dict.getSchema("REC::Event".encode('utf8')))
-    self.c_Particle = new bank(self.c_dict.getSchema("REC::Particle".encode('utf8')))
-    self.c_Scintillator = new bank(self.c_dict.getSchema("REC::Scintillator".encode('utf8')))
-    self.c_Calorimeter = new bank(self.c_dict.getSchema("REC::Calorimeter".encode('utf8')))
-    self.c_CovMat = new bank(self.c_dict.getSchema("REC::CovMat".encode('utf8')))
+    self.c_ForwardTagger = new bank(self.c_dict.getSchema(str_to_char("REC::ForwardTagger")))
+    self.c_VertDoca = new bank(self.c_dict.getSchema(str_to_char("REC::VertDoca")))
+    self.c_Track = new bank(self.c_dict.getSchema(str_to_char("REC::Track")))
+    self.c_Cherenkov = new bank(self.c_dict.getSchema(str_to_char("REC::Cherenkov")))
+    self.c_Event = new bank(self.c_dict.getSchema(str_to_char("REC::Event")))
+    self.c_Particle = new bank(self.c_dict.getSchema(str_to_char("REC::Particle")))
+    self.c_Scintillator = new bank(self.c_dict.getSchema(str_to_char("REC::Scintillator")))
+    self.c_Calorimeter = new bank(self.c_dict.getSchema(str_to_char("REC::Calorimeter")))
+    self.c_CovMat = new bank(self.c_dict.getSchema(str_to_char("REC::CovMat")))
 
   def __iter__(Event self):
       return self
   def __str__(Event self):
     out = ""
-    out += self.c_dict.getSchema("REC::ForwardTagger".encode('utf8')).json()
-    out += self.c_dict.getSchema("REC::VertDoca".encode('utf8')).json()
-    out += self.c_dict.getSchema("REC::Track".encode('utf8')).json()
-    out += self.c_dict.getSchema("REC::Cherenkov".encode('utf8')).json()
-    out += self.c_dict.getSchema("REC::Event".encode('utf8')).json()
-    out += self.c_dict.getSchema("REC::Particle".encode('utf8')).json()
-    out += self.c_dict.getSchema("REC::Scintillator".encode('utf8')).json()
-    out += self.c_dict.getSchema("REC::Calorimeter".encode('utf8')).json()
-    out += self.c_dict.getSchema("REC::CovMat".encode('utf8')).json()
+    out += self.c_dict.getSchema(str_to_char("REC::ForwardTagger")).json()
+    out += self.c_dict.getSchema(str_to_char("REC::VertDoca")).json()
+    out += self.c_dict.getSchema(str_to_char("REC::Track")).json()
+    out += self.c_dict.getSchema(str_to_char("REC::Cherenkov")).json()
+    out += self.c_dict.getSchema(str_to_char("REC::Event")).json()
+    out += self.c_dict.getSchema(str_to_char("REC::Particle")).json()
+    out += self.c_dict.getSchema(str_to_char("REC::Scintillator")).json()
+    out += self.c_dict.getSchema(str_to_char("REC::Calorimeter")).json()
+    out += self.c_dict.getSchema(str_to_char("REC::CovMat")).json()
     return out
   def __next__(Event self):
     if self.c_hiporeader.next():
@@ -142,289 +142,302 @@ cdef class Event:
   def __len__(Event self):
     return self.c_Particle.getRows()
   def pid(Event self, int i):
-    return self.c_Particle.getInt("pid".encode('utf8') ,i)
+    return self.c_Particle.getInt(str_to_char("pid") ,i)
   def px(Event self, int i):
-    return self.c_Particle.getFloat("px".encode('utf8') ,i)
+    return self.c_Particle.getFloat(str_to_char("px") ,i)
   def py(Event self, int i):
-    return self.c_Particle.getFloat("py".encode('utf8') ,i)
+    return self.c_Particle.getFloat(str_to_char("py") ,i)
   def pz(Event self, int i):
-    return self.c_Particle.getFloat("pz".encode('utf8') ,i)
+    return self.c_Particle.getFloat(str_to_char("pz") ,i)
   def vx(Event self, int i):
-    return self.c_Particle.getFloat("vx".encode('utf8') ,i)
+    return self.c_Particle.getFloat(str_to_char("vx") ,i)
   def vy(Event self, int i):
-    return self.c_Particle.getFloat("vy".encode('utf8') ,i)
+    return self.c_Particle.getFloat(str_to_char("vy") ,i)
   def vz(Event self, int i):
-    return self.c_Particle.getFloat("vz".encode('utf8') ,i)
+    return self.c_Particle.getFloat(str_to_char("vz") ,i)
   def charge(Event self, int i):
-    return self.c_Particle.getByte("charge".encode('utf8'), i)
+    return self.c_Particle.getByte(str_to_char("charge"), i)
   def beta(Event self, int i):
-    return self.c_Particle.getFloat("beta".encode('utf8'), i)
+    return self.c_Particle.getFloat(str_to_char("beta"), i)
   def chi2pid(Event self, int i):
-    return self.c_Particle.getFloat("chi2pid".encode('utf8'), i)
+    return self.c_Particle.getFloat(str_to_char("chi2pid"), i)
   def status(Event self, int i):
-    return self.c_Particle.getShort("status".encode('utf8'), i)
+    return self.c_Particle.getShort(str_to_char("status"), i)
 
   def event_len(Event self):
     return self.c_Event.getRows()
+  @property
   def NRUN(Event self):
-    return self.c_Event.getInt("NRUN".encode('utf8'),0)
+    return self.c_Event.getInt(str_to_char("NRUN"),0)
+  @property
   def NEVENT(Event self):
-    return self.c_Event.getInt("NEVENT".encode('utf8'),0)
+    return self.c_Event.getInt(str_to_char("NEVENT"),0)
+  @property
   def EVNTime(Event self):
-    return self.c_Event.getFloat("EVNTime".encode('utf8'),0)
+    return self.c_Event.getFloat(str_to_char("EVNTime"),0)
+  @property
   def TYPE(Event self):
-    return self.c_Event.getByte("TYPE".encode('utf8'),0)
+    return self.c_Event.getByte(str_to_char("TYPE"),0)
+  @property
   def EvCAT(Event self):
-    return self.c_Event.getShort("EvCAT".encode('utf8'),0)
+    return self.c_Event.getShort(str_to_char("EvCAT"),0)
+  @property
   def NPGP(Event self):
-    return self.c_Event.getShort("NPGP".encode('utf8'),0)
+    return self.c_Event.getShort(str_to_char("NPGP"),0)
+  @property
   def TRG(Event self):
-    return self.c_Event.getLong("TRG".encode('utf8'),0)
+    return self.c_Event.getLong(str_to_char("TRG"),0)
+  @property
   def BCG(Event self):
-    return self.c_Event.getFloat("BCG".encode('utf8'),0)
+    return self.c_Event.getFloat(str_to_char("BCG"),0)
+  @property
   def LT(Event self):
-    return self.c_Event.getDouble("LT".encode('utf8'),0)
+    return self.c_Event.getDouble(str_to_char("LT"),0)
+  @property
   def STTime(Event self):
-    return self.c_Event.getFloat("STTime".encode('utf8'),0)
+    return self.c_Event.getFloat(str_to_char("STTime"),0)
+  @property
   def RFTime(Event self):
-    return self.c_Event.getFloat("RFTime".encode('utf8'),0)
+    return self.c_Event.getFloat(str_to_char("RFTime"),0)
+  @property
   def Helic(Event self):
-    return self.c_Event.getByte("Helic".encode('utf8'),0)
+    return self.c_Event.getByte(str_to_char("Helic"),0)
+  @property
   def PTIME(Event self):
-    return self.c_Event.getFloat("PTIME".encode('utf8'),0)
+    return self.c_Event.getFloat(str_to_char("PTIME"),0)
 
   def ft_len(Event self):
     return self.c_ForwardTagger.getRows()
   def ft_pindex(Event self, int i):
-    return self.c_ForwardTagger.getShort("pindex".encode('utf8'), i)
+    return self.c_ForwardTagger.getShort(str_to_char("pindex"), i)
   def ft_detector(Event self, int i):
-    return self.c_ForwardTagger.getByte("detector".encode('utf8'), i)
+    return self.c_ForwardTagger.getByte(str_to_char("detector"), i)
   def ft_energy(Event self, int i):
-    return self.c_ForwardTagger.getFloat("energy".encode('utf8'), i)
+    return self.c_ForwardTagger.getFloat(str_to_char("energy"), i)
   def ft_time(Event self, int i):
-    return self.c_ForwardTagger.getFloat("time".encode('utf8'), i)
+    return self.c_ForwardTagger.getFloat(str_to_char("time"), i)
   def ft_path(Event self, int i):
-    return self.c_ForwardTagger.getFloat("path".encode('utf8'), i)
+    return self.c_ForwardTagger.getFloat(str_to_char("path"), i)
   def ft_chi2(Event self, int i):
-    return self.c_ForwardTagger.getFloat("chi2".encode('utf8'), i)
+    return self.c_ForwardTagger.getFloat(str_to_char("chi2"), i)
   def ft_x(Event self, int i):
-    return self.c_ForwardTagger.getFloat("x".encode('utf8'), i)
+    return self.c_ForwardTagger.getFloat(str_to_char("x"), i)
   def ft_y(Event self, int i):
-    return self.c_ForwardTagger.getFloat("y".encode('utf8'), i)
+    return self.c_ForwardTagger.getFloat(str_to_char("y"), i)
   def ft_z(Event self, int i):
-    return self.c_ForwardTagger.getFloat("z".encode('utf8'), i)
+    return self.c_ForwardTagger.getFloat(str_to_char("z"), i)
   def ft_dx(Event self, int i):
-    return self.c_ForwardTagger.getFloat("dx".encode('utf8'), i)
+    return self.c_ForwardTagger.getFloat(str_to_char("dx"), i)
   def ft_dy(Event self, int i):
-    return self.c_ForwardTagger.getFloat("dy".encode('utf8'), i)
+    return self.c_ForwardTagger.getFloat(str_to_char("dy"), i)
   def ft_radius(Event self, int i):
-    return self.c_ForwardTagger.getFloat("radius".encode('utf8'), i)
+    return self.c_ForwardTagger.getFloat(str_to_char("radius"), i)
   def ft_size(Event self, int i):
-    return self.c_ForwardTagger.getShort("size".encode('utf8'), i)
+    return self.c_ForwardTagger.getShort(str_to_char("size"), i)
   def ft_status(Event self, int i):
-    return self.c_ForwardTagger.getShort("status".encode('utf8'), i)
+    return self.c_ForwardTagger.getShort(str_to_char("status"), i)
 
   def vd_len(Event self):
     return self.c_VertDoca.getRows()
   def vd_index1(Event self, int i):
-    return self.c_VertDoca.getShort("index1".encode('utf8'),i)
+    return self.c_VertDoca.getShort(str_to_char("index1"),i)
   def vd_index2(Event self, int i):
-    return self.c_VertDoca.getShort("index2".encode('utf8'),i)
+    return self.c_VertDoca.getShort(str_to_char("index2"),i)
   def vd_x(Event self, int i):
-    return self.c_VertDoca.getFloat("x".encode('utf8'),i)
+    return self.c_VertDoca.getFloat(str_to_char("x"),i)
   def vd_y(Event self, int i):
-    return self.c_VertDoca.getFloat("y".encode('utf8'),i)
+    return self.c_VertDoca.getFloat(str_to_char("y"),i)
   def vd_z(Event self, int i):
-    return self.c_VertDoca.getFloat("z".encode('utf8'),i)
+    return self.c_VertDoca.getFloat(str_to_char("z"),i)
   def vd_x1(Event self, int i):
-    return self.c_VertDoca.getFloat("x1".encode('utf8'),i)
+    return self.c_VertDoca.getFloat(str_to_char("x1"),i)
   def vd_y1(Event self, int i):
-    return self.c_VertDoca.getFloat("y1".encode('utf8'),i)
+    return self.c_VertDoca.getFloat(str_to_char("y1"),i)
   def vd_z1(Event self, int i):
-    return self.c_VertDoca.getFloat("z1".encode('utf8'),i)
+    return self.c_VertDoca.getFloat(str_to_char("z1"),i)
   def vd_cx1(Event self, int i):
-    return self.c_VertDoca.getFloat("cx1".encode('utf8'),i)
+    return self.c_VertDoca.getFloat(str_to_char("cx1"),i)
   def vd_cy1(Event self, int i):
-    return self.c_VertDoca.getFloat("cy1".encode('utf8'),i)
+    return self.c_VertDoca.getFloat(str_to_char("cy1"),i)
   def vd_cz1(Event self, int i):
-    return self.c_VertDoca.getFloat("cz1".encode('utf8'),i)
+    return self.c_VertDoca.getFloat(str_to_char("cz1"),i)
   def vd_x2(Event self, int i):
-    return self.c_VertDoca.getFloat("x2".encode('utf8'),i)
+    return self.c_VertDoca.getFloat(str_to_char("x2"),i)
   def vd_y2(Event self, int i):
-    return self.c_VertDoca.getFloat("y2".encode('utf8'),i)
+    return self.c_VertDoca.getFloat(str_to_char("y2"),i)
   def vd_z2(Event self, int i):
-    return self.c_VertDoca.getFloat("z2".encode('utf8'),i)
+    return self.c_VertDoca.getFloat(str_to_char("z2"),i)
   def vd_cx2(Event self, int i):
-    return self.c_VertDoca.getFloat("cx2".encode('utf8'),i)
+    return self.c_VertDoca.getFloat(str_to_char("cx2"),i)
   def vd_cy2(Event self, int i):
-    return self.c_VertDoca.getFloat("cy2".encode('utf8'),i)
+    return self.c_VertDoca.getFloat(str_to_char("cy2"),i)
   def vd_cz2(Event self, int i):
-    return self.c_VertDoca.getFloat("cz2".encode('utf8'),i)
+    return self.c_VertDoca.getFloat(str_to_char("cz2"),i)
   def vd_r(Event self, int i):
-    return self.c_VertDoca.getFloat("r".encode('utf8'),i)
+    return self.c_VertDoca.getFloat(str_to_char("r"),i)
 
   def trk_len(Event self):
       return self.c_Track.getRows()
   def trk_index(Event self, int i):
-    return self.c_Track.getShort("index".encode('utf8'),i)
+    return self.c_Track.getShort(str_to_char("index"),i)
   def trk_pindex(Event self, int i):
-    return self.c_Track.getShort("pindex".encode('utf8'),i)
+    return self.c_Track.getShort(str_to_char("pindex"),i)
   def trk_detector(Event self, int i):
-    return self.c_Track.getByte("detector".encode('utf8'),i)
+    return self.c_Track.getByte(str_to_char("detector"),i)
   def trk_sector(Event self, int i):
-    return self.c_Track.getByte("sector".encode('utf8'),i)
+    return self.c_Track.getByte(str_to_char("sector"),i)
   def trk_status(Event self, int i):
-    return self.c_Track.getShort("status".encode('utf8'),i)
+    return self.c_Track.getShort(str_to_char("status"),i)
   def trk_q(Event self, int i):
-    return self.c_Track.getByte("q".encode('utf8'),i)
+    return self.c_Track.getByte(str_to_char("q"),i)
   def trk_chi2(Event self, int i):
-    return self.c_Track.getFloat("chi2".encode('utf8'),i)
+    return self.c_Track.getFloat(str_to_char("chi2"),i)
   def trk_NDF(Event self, int i):
-    return self.c_Track.getShort("NDF".encode('utf8'),i)
+    return self.c_Track.getShort(str_to_char("NDF"),i)
   def trk_px_nomm(Event self, int i):
-    return self.c_Track.getFloat("px_nomm".encode('utf8'),i)
+    return self.c_Track.getFloat(str_to_char("px_nomm"),i)
   def trk_py_nomm(Event self, int i):
-    return self.c_Track.getFloat("py_nomm".encode('utf8'),i)
+    return self.c_Track.getFloat(str_to_char("py_nomm"),i)
   def trk_pz_nomm(Event self, int i):
-    return self.c_Track.getFloat("pz_nomm".encode('utf8'),i)
+    return self.c_Track.getFloat(str_to_char("pz_nomm"),i)
   def trk_vx_nomm(Event self, int i):
-    return self.c_Track.getFloat("vx_nomm".encode('utf8'),i)
+    return self.c_Track.getFloat(str_to_char("vx_nomm"),i)
   def trk_vy_nomm(Event self, int i):
-    return self.c_Track.getFloat("vy_nomm".encode('utf8'),i)
+    return self.c_Track.getFloat(str_to_char("vy_nomm"),i)
   def trk_vz_nomm(Event self, int i):
-    return self.c_Track.getFloat("vz_nomm".encode('utf8'),i)
+    return self.c_Track.getFloat(str_to_char("vz_nomm"),i)
   def trk_chi2_nomm(Event self, int i):
-    return self.c_Track.getFloat("chi2_nomm".encode('utf8'),i)
+    return self.c_Track.getFloat(str_to_char("chi2_nomm"),i)
   def trk_NDF_nomm(Event self, int i):
-    return self.c_Track.getShort("NDF_nomm".encode('utf8'),i)
+    return self.c_Track.getShort(str_to_char("NDF_nomm"),i)
 
   def chern_len(Event self):
       return self.c_Cherenkov.getRows()
   def chern_index(Event self, int i):
-    return self.c_Cherenkov.getShort("index".encode('utf8'),i)
+    return self.c_Cherenkov.getShort(str_to_char("index"),i)
   def chern_pindex(Event self, int i):
-    return self.c_Cherenkov.getShort("pindex".encode('utf8'),i)
+    return self.c_Cherenkov.getShort(str_to_char("pindex"),i)
   def chern_detector(Event self, int i):
-    return self.c_Cherenkov.getByte("detector".encode('utf8'),i)
+    return self.c_Cherenkov.getByte(str_to_char("detector"),i)
   def chern_sector(Event self, int i):
-    return self.c_Cherenkov.getByte("sector".encode('utf8'),i)
+    return self.c_Cherenkov.getByte(str_to_char("sector"),i)
   def chern_nphe(Event self, int i):
-    return self.c_Cherenkov.getFloat("nphe".encode('utf8'),i)
+    return self.c_Cherenkov.getFloat(str_to_char("nphe"),i)
   def chern_time(Event self, int i):
-    return self.c_Cherenkov.getFloat("time".encode('utf8'),i)
+    return self.c_Cherenkov.getFloat(str_to_char("time"),i)
   def chern_path(Event self, int i):
-    return self.c_Cherenkov.getFloat("path".encode('utf8'),i)
+    return self.c_Cherenkov.getFloat(str_to_char("path"),i)
   def chern_chi2(Event self, int i):
-    return self.c_Cherenkov.getFloat("chi2".encode('utf8'),i)
+    return self.c_Cherenkov.getFloat(str_to_char("chi2"),i)
   def chern_x(Event self, int i):
-    return self.c_Cherenkov.getFloat("x".encode('utf8'),i)
+    return self.c_Cherenkov.getFloat(str_to_char("x"),i)
   def chern_y(Event self, int i):
-    return self.c_Cherenkov.getFloat("y".encode('utf8'),i)
+    return self.c_Cherenkov.getFloat(str_to_char("y"),i)
   def chern_z(Event self, int i):
-    return self.c_Cherenkov.getFloat("z".encode('utf8'),i)
+    return self.c_Cherenkov.getFloat(str_to_char("z"),i)
   def chern_theta(Event self, int i):
-    return self.c_Cherenkov.getFloat("theta".encode('utf8'),i)
+    return self.c_Cherenkov.getFloat(str_to_char("theta"),i)
   def chern_phi(Event self, int i):
-    return self.c_Cherenkov.getFloat("phi".encode('utf8'),i)
+    return self.c_Cherenkov.getFloat(str_to_char("phi"),i)
   def chern_dtheta(Event self, int i):
-    return self.c_Cherenkov.getFloat("dtheta".encode('utf8'),i)
+    return self.c_Cherenkov.getFloat(str_to_char("dtheta"),i)
   def chern_dphi(Event self, int i):
-    return self.c_Cherenkov.getFloat("dphi".encode('utf8'),i)
+    return self.c_Cherenkov.getFloat(str_to_char("dphi"),i)
   def chern_status(Event self, int i):
-    return self.c_Cherenkov.getShort("status".encode('utf8'),i)
+    return self.c_Cherenkov.getShort(str_to_char("status"),i)
 
   def sc_len(Event self):
     return self.c_Scintillator.getRows()
   def sc_index(Event self, int i):
-    return self.c_Scintillator.getShort("index".encode('utf8'),i)
+    return self.c_Scintillator.getShort(str_to_char("index"),i)
   def sc_pindex(Event self, int i):
-    return self.c_Scintillator.getShort("pindex".encode('utf8'),i)
+    return self.c_Scintillator.getShort(str_to_char("pindex"),i)
   def sc_detector(Event self, int i):
-    return self.c_Scintillator.getByte("detector".encode('utf8'),i)
+    return self.c_Scintillator.getByte(str_to_char("detector"),i)
   def sc_sector(Event self, int i):
-    return self.c_Scintillator.getByte("sector".encode('utf8'),i)
+    return self.c_Scintillator.getByte(str_to_char("sector"),i)
   def sc_layer(Event self, int i):
-    return self.c_Scintillator.getByte("layer".encode('utf8'),i)
+    return self.c_Scintillator.getByte(str_to_char("layer"),i)
   def sc_component(Event self, int i):
-    return self.c_Scintillator.getShort("component".encode('utf8'),i)
+    return self.c_Scintillator.getShort(str_to_char("component"),i)
   def sc_energy(Event self, int i):
-    return self.c_Scintillator.getFloat("energy".encode('utf8'),i)
+    return self.c_Scintillator.getFloat(str_to_char("energy"),i)
   def sc_time(Event self, int i):
-    return self.c_Scintillator.getFloat("time".encode('utf8'),i)
+    return self.c_Scintillator.getFloat(str_to_char("time"),i)
   def sc_path(Event self, int i):
-    return self.c_Scintillator.getFloat("path".encode('utf8'),i)
+    return self.c_Scintillator.getFloat(str_to_char("path"),i)
   def sc_chi2(Event self, int i):
-    return self.c_Scintillator.getFloat("chi2".encode('utf8'),i)
+    return self.c_Scintillator.getFloat(str_to_char("chi2"),i)
   def sc_x(Event self, int i):
-    return self.c_Scintillator.getFloat("x".encode('utf8'),i)
+    return self.c_Scintillator.getFloat(str_to_char("x"),i)
   def sc_y(Event self, int i):
-    return self.c_Scintillator.getFloat("y".encode('utf8'),i)
+    return self.c_Scintillator.getFloat(str_to_char("y"),i)
   def sc_z(Event self, int i):
-    return self.c_Scintillator.getFloat("z".encode('utf8'),i)
+    return self.c_Scintillator.getFloat(str_to_char("z"),i)
   def sc_hx(Event self, int i):
-    return self.c_Scintillator.getFloat("hx".encode('utf8'),i)
+    return self.c_Scintillator.getFloat(str_to_char("hx"),i)
   def sc_hy(Event self, int i):
-    return self.c_Scintillator.getFloat("hy".encode('utf8'),i)
+    return self.c_Scintillator.getFloat(str_to_char("hy"),i)
   def sc_hz(Event self, int i):
-    return self.c_Scintillator.getFloat("hz".encode('utf8'),i)
+    return self.c_Scintillator.getFloat(str_to_char("hz"),i)
   def sc_status(Event self, int i):
-    return self.c_Scintillator.getShort("status".encode('utf8'),i)
+    return self.c_Scintillator.getShort(str_to_char("status"),i)
 
   def cal_len(Event self):
     return self.c_Calorimeter.getRows()
   def cal_index(Event self, int i):
-    return self.c_Calorimeter.getShort("index".encode('utf8'),i)
+    return self.c_Calorimeter.getShort(str_to_char("index"),i)
   def cal_pindex(Event self, int i):
-    return self.c_Calorimeter.getShort("pindex".encode('utf8'),i)
+    return self.c_Calorimeter.getShort(str_to_char("pindex"),i)
   def cal_detector(Event self, int i):
-    return self.c_Calorimeter.getByte("detector".encode('utf8'),i)
+    return self.c_Calorimeter.getByte(str_to_char("detector"),i)
   def cal_sector(Event self, int i):
-    return self.c_Calorimeter.getByte("sector".encode('utf8'),i)
+    return self.c_Calorimeter.getByte(str_to_char("sector"),i)
   def cal_layer(Event self, int i):
-    return self.c_Calorimeter.getByte("layer".encode('utf8'),i)
+    return self.c_Calorimeter.getByte(str_to_char("layer"),i)
   def cal_energy(Event self, int i):
-    return self.c_Calorimeter.getFloat("energy".encode('utf8'),i)
+    return self.c_Calorimeter.getFloat(str_to_char("energy"),i)
   def cal_time(Event self, int i):
-    return self.c_Calorimeter.getFloat("time".encode('utf8'),i)
+    return self.c_Calorimeter.getFloat(str_to_char("time"),i)
   def cal_path(Event self, int i):
-    return self.c_Calorimeter.getFloat("path".encode('utf8'),i)
+    return self.c_Calorimeter.getFloat(str_to_char("path"),i)
   def cal_chi2(Event self, int i):
-    return self.c_Calorimeter.getFloat("chi2".encode('utf8'),i)
+    return self.c_Calorimeter.getFloat(str_to_char("chi2"),i)
   def cal_x(Event self, int i):
-    return self.c_Calorimeter.getFloat("x".encode('utf8'),i)
+    return self.c_Calorimeter.getFloat(str_to_char("x"),i)
   def cal_y(Event self, int i):
-    return self.c_Calorimeter.getFloat("y".encode('utf8'),i)
+    return self.c_Calorimeter.getFloat(str_to_char("y"),i)
   def cal_z(Event self, int i):
-    return self.c_Calorimeter.getFloat("z".encode('utf8'),i)
+    return self.c_Calorimeter.getFloat(str_to_char("z"),i)
   def cal_hx(Event self, int i):
-    return self.c_Calorimeter.getFloat("hx".encode('utf8'),i)
+    return self.c_Calorimeter.getFloat(str_to_char("hx"),i)
   def cal_hy(Event self, int i):
-    return self.c_Calorimeter.getFloat("hy".encode('utf8'),i)
+    return self.c_Calorimeter.getFloat(str_to_char("hy"),i)
   def cal_hz(Event self, int i):
-    return self.c_Calorimeter.getFloat("hz".encode('utf8'),i)
+    return self.c_Calorimeter.getFloat(str_to_char("hz"),i)
   def cal_lu(Event self, int i):
-    return self.c_Calorimeter.getFloat("lu".encode('utf8'),i)
+    return self.c_Calorimeter.getFloat(str_to_char("lu"),i)
   def cal_lv(Event self, int i):
-    return self.c_Calorimeter.getFloat("lv".encode('utf8'),i)
+    return self.c_Calorimeter.getFloat(str_to_char("lv"),i)
   def cal_lw(Event self, int i):
-    return self.c_Calorimeter.getFloat("lw".encode('utf8'),i)
+    return self.c_Calorimeter.getFloat(str_to_char("lw"),i)
   def cal_du(Event self, int i):
-    return self.c_Calorimeter.getFloat("du".encode('utf8'),i)
+    return self.c_Calorimeter.getFloat(str_to_char("du"),i)
   def cal_dv(Event self, int i):
-    return self.c_Calorimeter.getFloat("dv".encode('utf8'),i)
+    return self.c_Calorimeter.getFloat(str_to_char("dv"),i)
   def cal_dw(Event self, int i):
-    return self.c_Calorimeter.getFloat("dw".encode('utf8'),i)
+    return self.c_Calorimeter.getFloat(str_to_char("dw"),i)
   def cal_m2u(Event self, int i):
-    return self.c_Calorimeter.getFloat("m2u".encode('utf8'),i)
+    return self.c_Calorimeter.getFloat(str_to_char("m2u"),i)
   def cal_m2v(Event self, int i):
-    return self.c_Calorimeter.getFloat("m2v".encode('utf8'),i)
+    return self.c_Calorimeter.getFloat(str_to_char("m2v"),i)
   def cal_m2w(Event self, int i):
-    return self.c_Calorimeter.getFloat("m2w".encode('utf8'),i)
+    return self.c_Calorimeter.getFloat(str_to_char("m2w"),i)
   def cal_m3u(Event self, int i):
-    return self.c_Calorimeter.getFloat("m3u".encode('utf8'),i)
+    return self.c_Calorimeter.getFloat(str_to_char("m3u"),i)
   def cal_m3v(Event self, int i):
-    return self.c_Calorimeter.getFloat("m3v".encode('utf8'),i)
+    return self.c_Calorimeter.getFloat(str_to_char("m3v"),i)
   def cal_m3w(Event self, int i):
-    return self.c_Calorimeter.getFloat("m3w".encode('utf8'),i)
+    return self.c_Calorimeter.getFloat(str_to_char("m3w"),i)
   def cal_status(Event self, int i):
-    return self.c_Calorimeter.getShort("status".encode('utf8'),i)
+    return self.c_Calorimeter.getShort(str_to_char("status"),i)

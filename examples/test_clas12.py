@@ -23,22 +23,21 @@ sampling_fraction_hist = TH2D(
 
 for evnt in event:
     total += 1
-    if total % 100000 == 0:
+    if total % 10000 == 0:
         print(str(total / (time.time() - start_time)), "hz")
     if len(evnt) == 0:
         continue
-
-    if evnt.charge(0) != 0:
+    if evnt.charge(0) == -1:
         mom = np.sqrt(
             np.square(evnt.px(0)) + np.square(evnt.py(0)) + np.square(evnt.pz(0))
         )
-        sf = event.cal_tot_energy(0) / mom
+        sf = event.ec_tot_energy(0) / mom
         sampling_fraction_hist.Fill(mom, sf)
 
 print("\n\n")
 print(str(time.time() - start_time), "sec")
 print(str(total / (time.time() - start_time)), "hz")
 
-hfile = TFile("sf.root", "RECREATE", "Demo ROOT file with histograms")
+hfile = TFile("sf.root", "RECREATE", "Demo ROOT file with sampling fraction histogram")
 sampling_fraction_hist.Write()
 hfile.Write()
