@@ -65,6 +65,12 @@ cdef extern from "hipo4/bank.h" namespace "hipo":
       float  getFloat(char*, int)
       double getDouble(char*, int)
       long   getLong(char*, int)
+      int    getInt(string, int)
+      int    getShort(string, int)
+      int    getByte(string, int)
+      float  getFloat(string, int)
+      double getDouble(string, int)
+      long   getLong(string, int)
 
 cdef extern from "hipo4/event.h" namespace "hipo":
     cdef cppclass event:
