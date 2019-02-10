@@ -10,10 +10,7 @@ cimport libc.stdlib
 from libcpp.string cimport string
 from libcpp cimport bool
 from libcpp.map cimport map
-#from libcpp.utility cimport pair
-#from libcpp.vector cimport vector
-#from cython.view cimport array as cvarray
-#from libc.stdlib cimport free
+from libc.stdlib cimport free
 import numpy as np
 cimport numpy as np
 
@@ -43,6 +40,9 @@ cdef dict clas12_detector = {"BMT":  1,
 
 
 cdef dict clas12_layer = {"FTOF_1A": 1,"FTOF_1B": 2,"FTOF_2": 3,"PCAL": 1,"EC_INNER": 4,"EC_OUTER": 7}
+
+cdef dict get_id = {'PROTON': 2212, 'NEUTRON': 2112, 'PIP': 211, 'PIM': -211, 'PI0': 111, 'KP': 321, 'KM': -321, 'PHOTON': 22, 'ELECTRON': 11}
+cdef dict part_mass = {11: 0.000511, 211: 0.13957, -211: 0.13957, 2212: 0.93827, 2112: 0.939565, 321: 0.493667, -321: 0.493667, 22: 0}
 
 cdef extern from "hipo4/dictionary.h" namespace "hipo":
     cdef cppclass schema:
@@ -89,6 +89,174 @@ cdef char* str_to_char(str name):
   cdef bytes name_bytes = name.encode()
   cdef char* c_name = name_bytes
   return c_name
+
+cdef extern from "TLorentzVector.h":
+  cdef cppclass TLorentzVector:
+    TLorentzVector() except +
+    TLorentzVector(double x, double y, double z, double t) except +
+    void Boost(double, double, double)
+    void SetXYZM(double x, double y, double z, double m)
+    void SetXYZT (double x, double y, double z, double t)
+    double Px()
+    double Py()
+    double Pz()
+    double P()
+    double E()
+    double Energy()
+    double Theta()
+    double CosTheta()
+    double Phi()
+    double Rho()
+    double Perp2()
+    double Pt()
+    double Perp()
+    double Et2()
+    double Et()
+    double Mag2()
+    double M2()
+    double Mag()
+    double M()
+    double Mt2()
+    double Mt()
+    double Beta()
+    double Gamma()
+    double Plus()
+    double Minus()
+    double Rapidity()
+    double Eta()
+    double PseudoRapidity()
+
+cdef class LorentzVector:
+  cdef TLorentzVector*c_TLorentzVector
+  def __cinit__(LorentzVector self, double px, double py, double pz, **kwargs):
+    if "energy" in kwargs:
+      self.c_TLorentzVector = new TLorentzVector(px, py, pz, kwargs["energy"])
+    elif "mass" in kwargs:
+      self.c_TLorentzVector = new TLorentzVector()
+      self.c_TLorentzVector.SetXYZM(px, py, pz, kwargs["mass"])
+    elif "pid" in kwargs:
+      self.c_TLorentzVector = new TLorentzVector()
+      self.c_TLorentzVector.SetXYZM(px, py, pz, part_mass[kwargs["pid"]])
+    else:
+      self.c_TLorentzVector = new TLorentzVector(px, py, pz, 0)
+  def __dealloc__(self):
+    free(self.c_TLorentzVector)
+  def __del__(self):
+    free(self.c_TLorentzVector)
+  def __add__(LorentzVector self, LorentzVector other):
+    cdef double X = self.c_TLorentzVector.Px() + other.c_TLorentzVector.Px()
+    cdef double Y = self.c_TLorentzVector.Py() + other.c_TLorentzVector.Py()
+    cdef double Z = self.c_TLorentzVector.Pz() + other.c_TLorentzVector.Pz()
+    cdef double E = self.c_TLorentzVector.E() + other.c_TLorentzVector.E()
+    return LorentzVector(X, Y, Z, energy=E)
+  def __iadd__(LorentzVector self, LorentzVector other):
+    cdef double X = self.c_TLorentzVector.Px() + other.c_TLorentzVector.Px()
+    cdef double Y = self.c_TLorentzVector.Py() + other.c_TLorentzVector.Py()
+    cdef double Z = self.c_TLorentzVector.Pz() + other.c_TLorentzVector.Pz()
+    cdef double E = self.c_TLorentzVector.E() + other.c_TLorentzVector.E()
+    return LorentzVector(X, Y, Z, energy=E)
+  def __sub__(LorentzVector self, LorentzVector other):
+    cdef double X = self.c_TLorentzVector.Px() - other.c_TLorentzVector.Px()
+    cdef double Y = self.c_TLorentzVector.Py() - other.c_TLorentzVector.Py()
+    cdef double Z = self.c_TLorentzVector.Pz() - other.c_TLorentzVector.Pz()
+    cdef double E = self.c_TLorentzVector.E() - other.c_TLorentzVector.E()
+    return LorentzVector(X, Y, Z, energy=E)
+  def __isub__(LorentzVector self, LorentzVector other):
+    cdef double X = self.c_TLorentzVector.Px() - other.c_TLorentzVector.Px()
+    cdef double Y = self.c_TLorentzVector.Py() - other.c_TLorentzVector.Py()
+    cdef double Z = self.c_TLorentzVector.Pz() - other.c_TLorentzVector.Pz()
+    cdef double E = self.c_TLorentzVector.E() - other.c_TLorentzVector.E()
+    return LorentzVector(X, Y, Z, energy=E)
+  def __str__(self):
+    return "Px {0: 0.2f} | Py {1: 0.2f} | Pz {2: 0.2f} | E {3: 0.2f}".format(self.Px,self.Py ,self.Pz, self.E)
+  def __repr__(self):
+    return self.__str__()
+  def SetPxPyPzM(LorentzVector self, double px, double py, double pz, double mass):
+    self.c_TLorentzVector.SetXYZM(px, py, pz, mass)
+  @property
+  def Px(LorentzVector self):
+    return self.c_TLorentzVector.Px()
+  @property
+  def Py(LorentzVector self):
+    return self.c_TLorentzVector.Py()
+  @property
+  def Pz(LorentzVector self):
+    return self.c_TLorentzVector.Pz()
+  @property
+  def P(LorentzVector self):
+    return self.c_TLorentzVector.P()
+  @property
+  def E(LorentzVector self):
+    return self.c_TLorentzVector.E()
+  @property
+  def Energy(LorentzVector self):
+    return self.c_TLorentzVector.E()
+  @property
+  def Theta(LorentzVector self):
+    return self.c_TLorentzVector.Theta()
+  @property
+  def CosTheta(LorentzVector self):
+    return self.c_TLorentzVector.CosTheta()
+  @property
+  def Phi(LorentzVector self):
+    return self.c_TLorentzVector.Phi()
+  @property
+  def Rho(LorentzVector self):
+    return self.c_TLorentzVector.Rho()
+  @property
+  def Perp2(LorentzVector self):
+    return self.c_TLorentzVector.Perp2()
+  @property
+  def Pt(LorentzVector self):
+    return self.c_TLorentzVector.Pt()
+  @property
+  def Perp(LorentzVector self):
+    return self.c_TLorentzVector.Perp()
+  @property
+  def Et2(LorentzVector self):
+    return self.c_TLorentzVector.Et2()
+  @property
+  def Et(LorentzVector self):
+    return self.c_TLorentzVector.Et()
+  @property
+  def Mag2(LorentzVector self):
+    return self.c_TLorentzVector.Mag2()
+  @property
+  def M2(LorentzVector self):
+    return self.c_TLorentzVector.M2()
+  @property
+  def Mag(LorentzVector self):
+    return self.c_TLorentzVector.Mag()
+  @property
+  def M(LorentzVector self):
+    return self.c_TLorentzVector.M()
+  @property
+  def Mt2(LorentzVector self):
+    return self.c_TLorentzVector.Mt2()
+  @property
+  def Mt(LorentzVector self):
+    return self.c_TLorentzVector.Mt()
+  @property
+  def Beta(LorentzVector self):
+    return self.c_TLorentzVector.Beta()
+  @property
+  def Gamma(LorentzVector self):
+    return self.c_TLorentzVector.Gamma()
+  @property
+  def Plus(LorentzVector self):
+    return self.c_TLorentzVector.Plus()
+  @property
+  def Minus(LorentzVector self):
+    return self.c_TLorentzVector.Minus()
+  @property
+  def Rapidity(LorentzVector self):
+    return self.c_TLorentzVector.Rapidity()
+  @property
+  def Eta(LorentzVector self):
+    return self.c_TLorentzVector.Eta()
+  @property
+  def PseudoRapidity(LorentzVector self):
+    return self.c_TLorentzVector.PseudoRapidity()
 
 cdef class clas12Event:
   cdef:
@@ -802,82 +970,297 @@ cdef class clas12Event:
     if i > self.c_Calorimeter.getRows():
       return NAN
     return self._ec_ecout_lw[i]
+
+def sc_ftof_1a_sec(clas12Event self, int i):
+  if i > self.c_Scintillator.getRows():
+    return -1
+  return self._sc_ftof_1a_sec[i]
+def sc_ftof_1a_time(clas12Event self, int i):
+  if i > self.c_Scintillator.getRows():
+    return NAN
+  return self._sc_ftof_1a_time[i]
+def sc_ftof_1a_path(clas12Event self, int i):
+  if i > self.c_Scintillator.getRows():
+    return NAN
+  return self._sc_ftof_1a_path[i]
+def sc_ftof_1a_energy(clas12Event self, int i):
+  if i > self.c_Scintillator.getRows():
+    return NAN
+  return self._sc_ftof_1a_energy[i]
+def sc_ftof_1a_component(clas12Event self, int i):
+  if i > self.c_Scintillator.getRows():
+    return -1
+  return self._sc_ftof_1a_component[i]
+def sc_ftof_1a_x(clas12Event self, int i):
+  if i > self.c_Scintillator.getRows():
+    return NAN
+  return self._sc_ftof_1a_x[i]
+def sc_ftof_1a_y(clas12Event self, int i):
+  if i > self.c_Scintillator.getRows():
+    return NAN
+  return self._sc_ftof_1a_y[i]
+def sc_ftof_1a_z(clas12Event self, int i):
+  if i > self.c_Scintillator.getRows():
+    return NAN
+  return self._sc_ftof_1a_z[i]
+def sc_ftof_1a_hx(clas12Event self, int i):
+  if i > self.c_Scintillator.getRows():
+    return NAN
+  return self._sc_ftof_1a_hx[i]
+def sc_ftof_1a_hy(clas12Event self, int i):
+  if i > self.c_Scintillator.getRows():
+    return NAN
+  return self._sc_ftof_1a_hy[i]
+def sc_ftof_1a_hz(clas12Event self, int i):
+  if i > self.c_Scintillator.getRows():
+    return NAN
+  return self._sc_ftof_1a_hz[i]
+def sc_ftof_1b_sec(clas12Event self, int i):
+  if i > self.c_Scintillator.getRows():
+    return -1
+  return self._sc_ftof_1b_sec[i]
+def sc_ftof_1b_time(clas12Event self, int i):
+  if i > self.c_Scintillator.getRows():
+    return NAN
+  return self._sc_ftof_1b_time[i]
+def sc_ftof_1b_path(clas12Event self, int i):
+  if i > self.c_Scintillator.getRows():
+    return NAN
+  return self._sc_ftof_1b_path[i]
+def sc_ftof_1b_energy(clas12Event self, int i):
+  if i > self.c_Scintillator.getRows():
+    return NAN
+  return self._sc_ftof_1b_energy[i]
+def sc_ftof_1b_component(clas12Event self, int i):
+  if i > self.c_Scintillator.getRows():
+    return -1
+  return self._sc_ftof_1b_component[i]
+def sc_ftof_1b_x(clas12Event self, int i):
+  if i > self.c_Scintillator.getRows():
+    return NAN
+  return self._sc_ftof_1b_x[i]
+def sc_ftof_1b_y(clas12Event self, int i):
+  if i > self.c_Scintillator.getRows():
+    return NAN
+  return self._sc_ftof_1b_y[i]
+def sc_ftof_1b_z(clas12Event self, int i):
+  if i > self.c_Scintillator.getRows():
+    return NAN
+  return self._sc_ftof_1b_z[i]
+def sc_ftof_1b_hx(clas12Event self, int i):
+  if i > self.c_Scintillator.getRows():
+    return NAN
+  return self._sc_ftof_1b_hx[i]
+def sc_ftof_1b_hy(clas12Event self, int i):
+  if i > self.c_Scintillator.getRows():
+    return NAN
+  return self._sc_ftof_1b_hy[i]
+def sc_ftof_1b_hz(clas12Event self, int i):
+  if i > self.c_Scintillator.getRows():
+    return NAN
+  return self._sc_ftof_1b_hz[i]
+def sc_ftof_2_sec(clas12Event self, int i):
+  if i > self.c_Scintillator.getRows():
+    return -1
+  return self._sc_ftof_2_sec[i]
+def sc_ftof_2_time(clas12Event self, int i):
+  if i > self.c_Scintillator.getRows():
+    return NAN
+  return self._sc_ftof_2_time[i]
+def sc_ftof_2_path(clas12Event self, int i):
+  if i > self.c_Scintillator.getRows():
+    return NAN
+  return self._sc_ftof_2_path[i]
+def sc_ftof_2_energy(clas12Event self, int i):
+  if i > self.c_Scintillator.getRows():
+    return NAN
+  return self._sc_ftof_2_energy[i]
+def sc_ftof_2_component(clas12Event self, int i):
+  if i > self.c_Scintillator.getRows():
+    return -1
+  return self._sc_ftof_2_component[i]
+def sc_ftof_2_x(clas12Event self, int i):
+  if i > self.c_Scintillator.getRows():
+    return NAN
+  return self._sc_ftof_2_x[i]
+def sc_ftof_2_y(clas12Event self, int i):
+  if i > self.c_Scintillator.getRows():
+    return NAN
+  return self._sc_ftof_2_y[i]
+def sc_ftof_2_z(clas12Event self, int i):
+  if i > self.c_Scintillator.getRows():
+    return NAN
+  return self._sc_ftof_2_z[i]
+def sc_ftof_2_hx(clas12Event self, int i):
+  if i > self.c_Scintillator.getRows():
+    return NAN
+  return self._sc_ftof_2_hx[i]
+def sc_ftof_2_hy(clas12Event self, int i):
+  if i > self.c_Scintillator.getRows():
+    return NAN
+  return self._sc_ftof_2_hy[i]
+def sc_ftof_2_hz(clas12Event self, int i):
+  if i > self.c_Scintillator.getRows():
+    return NAN
+  return self._sc_ftof_2_hz[i]
+def sc_ctof_time(clas12Event self, int i):
+  if i > self.c_Scintillator.getRows():
+    return NAN
+  return self._sc_ctof_time[i]
+def sc_ctof_path(clas12Event self, int i):
+  if i > self.c_Scintillator.getRows():
+    return NAN
+  return self._sc_ctof_path[i]
+def sc_ctof_energy(clas12Event self, int i):
+  if i > self.c_Scintillator.getRows():
+    return NAN
+  return self._sc_ctof_energy[i]
+def sc_ctof_component(clas12Event self, int i):
+  if i > self.c_Scintillator.getRows():
+    return -1
+  return self._sc_ctof_component[i]
+def sc_ctof_x(clas12Event self, int i):
+  if i > self.c_Scintillator.getRows():
+    return NAN
+  return self._sc_ctof_x[i]
+def sc_ctof_y(clas12Event self, int i):
+  if i > self.c_Scintillator.getRows():
+    return NAN
+  return self._sc_ctof_y[i]
+def sc_ctof_z(clas12Event self, int i):
+  if i > self.c_Scintillator.getRows():
+    return NAN
+  return self._sc_ctof_z[i]
+def sc_ctof_hx(clas12Event self, int i):
+  if i > self.c_Scintillator.getRows():
+    return NAN
+  return self._sc_ctof_hx[i]
+def sc_ctof_hy(clas12Event self, int i):
+  if i > self.c_Scintillator.getRows():
+    return NAN
+  return self._sc_ctof_hy[i]
+def sc_ctof_hz(clas12Event self, int i):
+  if i > self.c_Scintillator.getRows():
+    return NAN
+  return self._sc_ctof_hz[i]
+def sc_cnd_time(clas12Event self, int i):
+  if i > self.c_Scintillator.getRows():
+    return NAN
+  return self._sc_cnd_time[i]
+def sc_cnd_path(clas12Event self, int i):
+  if i > self.c_Scintillator.getRows():
+    return NAN
+  return self._sc_cnd_path[i]
+def sc_cnd_energy(clas12Event self, int i):
+  if i > self.c_Scintillator.getRows():
+    return NAN
+  return self._sc_cnd_energy[i]
+def sc_cnd_component(clas12Event self, int i):
+  if i > self.c_Scintillator.getRows():
+    return -1
+  return self._sc_cnd_component[i]
+def sc_cnd_x(clas12Event self, int i):
+  if i > self.c_Scintillator.getRows():
+    return NAN
+  return self._sc_cnd_x[i]
+def sc_cnd_y(clas12Event self, int i):
+  if i > self.c_Scintillator.getRows():
+    return NAN
+  return self._sc_cnd_y[i]
+def sc_cnd_z(clas12Event self, int i):
+  if i > self.c_Scintillator.getRows():
+    return NAN
+  return self._sc_cnd_z[i]
+def sc_cnd_hx(clas12Event self, int i):
+  if i > self.c_Scintillator.getRows():
+    return NAN
+  return self._sc_cnd_hx[i]
+def sc_cnd_hy(clas12Event self, int i):
+  if i > self.c_Scintillator.getRows():
+    return NAN
+  return self._sc_cnd_hy[i]
+def sc_cnd_hz(clas12Event self, int i):
+  if i > self.c_Scintillator.getRows():
+    return NAN
+  return self._sc_cnd_hz[i]
+
+def cc_nphe_tot(clas12Event self, int i):
+  if i > self.c_Cherenkov.getRows():
+    return NAN
+  return self._cc_nphe_tot[i]
+def cc_ltcc_sec(clas12Event self, int i):
+  if i > self.c_Cherenkov.getRows():
+    return NAN
+  return self._cc_ltcc_sec[i]
+def cc_ltcc_nphe(clas12Event self, int i):
+  if i > self.c_Cherenkov.getRows():
+    return -1
+  return self._cc_ltcc_nphe[i]
+def cc_ltcc_time(clas12Event self, int i):
+  if i > self.c_Cherenkov.getRows():
+    return NAN
+  return self._cc_ltcc_time[i]
+def cc_ltcc_path(clas12Event self, int i):
+  if i > self.c_Cherenkov.getRows():
+    return NAN
+  return self._cc_ltcc_path[i]
+def cc_ltcc_theta(clas12Event self, int i):
+  if i > self.c_Cherenkov.getRows():
+    return NAN
+  return self._cc_ltcc_theta[i]
+def cc_ltcc_phi(clas12Event self, int i):
+  if i > self.c_Cherenkov.getRows():
+    return NAN
+  return self._cc_ltcc_phi[i]
+def cc_htcc_sec(clas12Event self, int i):
+  if i > self.c_Cherenkov.getRows():
+    return NAN
+  return self._cc_htcc_sec[i]
+def cc_htcc_nphe(clas12Event self, int i):
+  if i > self.c_Cherenkov.getRows():
+    return -1
+  return self._cc_htcc_nphe[i]
+def cc_htcc_time(clas12Event self, int i):
+  if i > self.c_Cherenkov.getRows():
+    return NAN
+  return self._cc_htcc_time[i]
+def cc_htcc_path(clas12Event self, int i):
+  if i > self.c_Cherenkov.getRows():
+    return NAN
+  return self._cc_htcc_path[i]
+def cc_htcc_theta(clas12Event self, int i):
+  if i > self.c_Cherenkov.getRows():
+    return NAN
+  return self._cc_htcc_theta[i]
+def cc_htcc_phi(clas12Event self, int i):
+  if i > self.c_Cherenkov.getRows():
+    return NAN
+  return self._cc_htcc_phi[i]
+def cc_rich_sec(clas12Event self, int i):
+  if i > self.c_Cherenkov.getRows():
+    return NAN
+  return self._cc_rich_sec[i]
+def cc_rich_nphe(clas12Event self, int i):
+  if i > self.c_Cherenkov.getRows():
+    return -1
+  return self._cc_rich_nphe[i]
+def cc_rich_time(clas12Event self, int i):
+  if i > self.c_Cherenkov.getRows():
+    return NAN
+  return self._cc_rich_time[i]
+def cc_rich_path(clas12Event self, int i):
+  if i > self.c_Cherenkov.getRows():
+    return NAN
+  return self._cc_rich_path[i]
+def cc_rich_theta(clas12Event self, int i):
+  if i > self.c_Cherenkov.getRows():
+    return NAN
+  return self._cc_rich_theta[i]
+def cc_rich_phi(clas12Event self, int i):
+  if i > self.c_Cherenkov.getRows():
+    return NAN
+  return self._cc_rich_phi[i]
 """
-    np.ndarray sc_ftof_1a_sec
-    np.ndarray sc_ftof_1a_time
-    np.ndarray sc_ftof_1a_path
-    np.ndarray sc_ftof_1a_energy
-    np.ndarray sc_ftof_1a_component
-    np.ndarray sc_ftof_1a_x
-    np.ndarray sc_ftof_1a_y
-    np.ndarray sc_ftof_1a_z
-    np.ndarray sc_ftof_1a_hx
-    np.ndarray sc_ftof_1a_hy
-    np.ndarray sc_ftof_1a_hz
-    np.ndarray sc_ftof_1b_sec
-    np.ndarray sc_ftof_1b_time
-    np.ndarray sc_ftof_1b_path
-    np.ndarray sc_ftof_1b_energy
-    np.ndarray sc_ftof_1b_component
-    np.ndarray sc_ftof_1b_x
-    np.ndarray sc_ftof_1b_y
-    np.ndarray sc_ftof_1b_z
-    np.ndarray sc_ftof_1b_hx
-    np.ndarray sc_ftof_1b_hy
-    np.ndarray sc_ftof_1b_hz
-    np.ndarray sc_ftof_2_sec
-    np.ndarray sc_ftof_2_time
-    np.ndarray sc_ftof_2_path
-    np.ndarray sc_ftof_2_energy
-    np.ndarray sc_ftof_2_component
-    np.ndarray sc_ftof_2_x
-    np.ndarray sc_ftof_2_y
-    np.ndarray sc_ftof_2_z
-    np.ndarray sc_ftof_2_hx
-    np.ndarray sc_ftof_2_hy
-    np.ndarray sc_ftof_2_hz
-    np.ndarray sc_ctof_time
-    np.ndarray sc_ctof_path
-    np.ndarray sc_ctof_energy
-    np.ndarray sc_ctof_component
-    np.ndarray sc_ctof_x
-    np.ndarray sc_ctof_y
-    np.ndarray sc_ctof_z
-    np.ndarray sc_ctof_hx
-    np.ndarray sc_ctof_hy
-    np.ndarray sc_ctof_hz
-    np.ndarray sc_cnd_time
-    np.ndarray sc_cnd_path
-    np.ndarray sc_cnd_energy
-    np.ndarray sc_cnd_component
-    np.ndarray sc_cnd_x
-    np.ndarray sc_cnd_y
-    np.ndarray sc_cnd_z
-    np.ndarray sc_cnd_hx
-    np.ndarray sc_cnd_hy
-    np.ndarray sc_cnd_hz
-"""
-"""
-    # CC
-    np.ndarray cc_nphe_tot
-    np.ndarray cc_ltcc_sec
-    np.ndarray cc_ltcc_nphe
-    np.ndarray cc_ltcc_time
-    np.ndarray cc_ltcc_path
-    np.ndarray cc_ltcc_theta
-    np.ndarray cc_ltcc_phi
-    np.ndarray cc_htcc_sec
-    np.ndarray cc_htcc_nphe
-    np.ndarray cc_htcc_time
-    np.ndarray cc_htcc_path
-    np.ndarray cc_htcc_theta
-    np.ndarray cc_htcc_phi
-    np.ndarray cc_rich_sec
-    np.ndarray cc_rich_nphe
-    np.ndarray cc_rich_time
-    np.ndarray cc_rich_path
-    np.ndarray cc_rich_theta
-    np.ndarray cc_rich_phi
     # FT
     np.ndarray ft_cal_energy
     np.ndarray ft_cal_time
@@ -906,7 +1289,6 @@ cdef class clas12Event:
     np.ndarray dc_vx
     np.ndarray dc_vy
     np.ndarray dc_vz
-
     np.ndarray cvt_px
     np.ndarray cvt_py
     np.ndarray cvt_pz
