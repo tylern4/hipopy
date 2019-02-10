@@ -6,6 +6,8 @@ cimport cython
 
 cimport cpython
 cimport libc.stdlib
+from libcpp.memory cimport unique_ptr
+from cython.operator cimport dereference as deref
 
 from libcpp.string cimport string
 from libcpp cimport bool
@@ -13,6 +15,7 @@ from libcpp.map cimport map
 from libc.stdlib cimport free
 import numpy as np
 cimport numpy as np
+
 
 
 cdef float NAN = float("NAN")
@@ -134,136 +137,132 @@ cdef extern from "TLorentzVector.h":
     double PseudoRapidity()
 
 cdef class LorentzVector:
-  cdef TLorentzVector*c_TLorentzVector
+  cdef unique_ptr[TLorentzVector] c_TLorentzVector
   def __cinit__(LorentzVector self, double px, double py, double pz, **kwargs):
     if "energy" in kwargs:
-      self.c_TLorentzVector = new TLorentzVector(px, py, pz, kwargs["energy"])
+      self.c_TLorentzVector.reset(new TLorentzVector(px, py, pz, kwargs["energy"]))
     elif "mass" in kwargs:
-      self.c_TLorentzVector = new TLorentzVector()
-      self.c_TLorentzVector.SetXYZM(px, py, pz, kwargs["mass"])
+      self.c_TLorentzVector.reset(new TLorentzVector())
+      deref(self.c_TLorentzVector).SetXYZM(px, py, pz, kwargs["mass"])
     elif "pid" in kwargs:
-      self.c_TLorentzVector = new TLorentzVector()
-      self.c_TLorentzVector.SetXYZM(px, py, pz, part_mass[kwargs["pid"]])
+      self.c_TLorentzVector.reset(new TLorentzVector())
+      deref(self.c_TLorentzVector).SetXYZM(px, py, pz, part_mass[kwargs["pid"]])
     else:
-      self.c_TLorentzVector = new TLorentzVector(px, py, pz, 0)
-  def __dealloc__(self):
-    free(self.c_TLorentzVector)
-  def __del__(self):
-    free(self.c_TLorentzVector)
+      self.c_TLorentzVector.reset(new TLorentzVector(px, py, pz, 0))
   def __add__(LorentzVector self, LorentzVector other):
-    cdef double X = self.c_TLorentzVector.Px() + other.c_TLorentzVector.Px()
-    cdef double Y = self.c_TLorentzVector.Py() + other.c_TLorentzVector.Py()
-    cdef double Z = self.c_TLorentzVector.Pz() + other.c_TLorentzVector.Pz()
-    cdef double E = self.c_TLorentzVector.E() + other.c_TLorentzVector.E()
+    cdef double X = deref(self.c_TLorentzVector).Px() + deref(other.c_TLorentzVector).Px()
+    cdef double Y = deref(self.c_TLorentzVector).Py() + deref(other.c_TLorentzVector).Py()
+    cdef double Z = deref(self.c_TLorentzVector).Pz() + deref(other.c_TLorentzVector).Pz()
+    cdef double E = deref(self.c_TLorentzVector).E() + deref(other.c_TLorentzVector).E()
     return LorentzVector(X, Y, Z, energy=E)
   def __iadd__(LorentzVector self, LorentzVector other):
-    cdef double X = self.c_TLorentzVector.Px() + other.c_TLorentzVector.Px()
-    cdef double Y = self.c_TLorentzVector.Py() + other.c_TLorentzVector.Py()
-    cdef double Z = self.c_TLorentzVector.Pz() + other.c_TLorentzVector.Pz()
-    cdef double E = self.c_TLorentzVector.E() + other.c_TLorentzVector.E()
+    cdef double X = deref(self.c_TLorentzVector).Px() + deref(other.c_TLorentzVector).Px()
+    cdef double Y = deref(self.c_TLorentzVector).Py() + deref(other.c_TLorentzVector).Py()
+    cdef double Z = deref(self.c_TLorentzVector).Pz() + deref(other.c_TLorentzVector).Pz()
+    cdef double E = deref(self.c_TLorentzVector).E() + deref(other.c_TLorentzVector).E()
     return LorentzVector(X, Y, Z, energy=E)
   def __sub__(LorentzVector self, LorentzVector other):
-    cdef double X = self.c_TLorentzVector.Px() - other.c_TLorentzVector.Px()
-    cdef double Y = self.c_TLorentzVector.Py() - other.c_TLorentzVector.Py()
-    cdef double Z = self.c_TLorentzVector.Pz() - other.c_TLorentzVector.Pz()
-    cdef double E = self.c_TLorentzVector.E() - other.c_TLorentzVector.E()
+    cdef double X = deref(self.c_TLorentzVector).Px() - deref(other.c_TLorentzVector).Px()
+    cdef double Y = deref(self.c_TLorentzVector).Py() - deref(other.c_TLorentzVector).Py()
+    cdef double Z = deref(self.c_TLorentzVector).Pz() - deref(other.c_TLorentzVector).Pz()
+    cdef double E = deref(self.c_TLorentzVector).E() - deref(other.c_TLorentzVector).E()
     return LorentzVector(X, Y, Z, energy=E)
   def __isub__(LorentzVector self, LorentzVector other):
-    cdef double X = self.c_TLorentzVector.Px() - other.c_TLorentzVector.Px()
-    cdef double Y = self.c_TLorentzVector.Py() - other.c_TLorentzVector.Py()
-    cdef double Z = self.c_TLorentzVector.Pz() - other.c_TLorentzVector.Pz()
-    cdef double E = self.c_TLorentzVector.E() - other.c_TLorentzVector.E()
+    cdef double X = deref(self.c_TLorentzVector).Px() - deref(other.c_TLorentzVector).Px()
+    cdef double Y = deref(self.c_TLorentzVector).Py() - deref(other.c_TLorentzVector).Py()
+    cdef double Z = deref(self.c_TLorentzVector).Pz() - deref(other.c_TLorentzVector).Pz()
+    cdef double E = deref(self.c_TLorentzVector).E() - deref(other.c_TLorentzVector).E()
     return LorentzVector(X, Y, Z, energy=E)
   def __str__(self):
     return "Px {0: 0.2f} | Py {1: 0.2f} | Pz {2: 0.2f} | E {3: 0.2f}".format(self.Px,self.Py ,self.Pz, self.E)
   def __repr__(self):
     return self.__str__()
   def SetPxPyPzM(LorentzVector self, double px, double py, double pz, double mass):
-    self.c_TLorentzVector.SetXYZM(px, py, pz, mass)
+    deref(self.c_TLorentzVector).SetXYZM(px, py, pz, mass)
   @property
   def Px(LorentzVector self):
-    return self.c_TLorentzVector.Px()
+    return deref(self.c_TLorentzVector).Px()
   @property
   def Py(LorentzVector self):
-    return self.c_TLorentzVector.Py()
+    return deref(self.c_TLorentzVector).Py()
   @property
   def Pz(LorentzVector self):
-    return self.c_TLorentzVector.Pz()
+    return deref(self.c_TLorentzVector).Pz()
   @property
   def P(LorentzVector self):
-    return self.c_TLorentzVector.P()
+    return deref(self.c_TLorentzVector).P()
   @property
   def E(LorentzVector self):
-    return self.c_TLorentzVector.E()
+    return deref(self.c_TLorentzVector).E()
   @property
   def Energy(LorentzVector self):
-    return self.c_TLorentzVector.E()
+    return deref(self.c_TLorentzVector).E()
   @property
   def Theta(LorentzVector self):
-    return self.c_TLorentzVector.Theta()
+    return deref(self.c_TLorentzVector).Theta()
   @property
   def CosTheta(LorentzVector self):
-    return self.c_TLorentzVector.CosTheta()
+    return deref(self.c_TLorentzVector).CosTheta()
   @property
   def Phi(LorentzVector self):
-    return self.c_TLorentzVector.Phi()
+    return deref(self.c_TLorentzVector).Phi()
   @property
   def Rho(LorentzVector self):
-    return self.c_TLorentzVector.Rho()
+    return deref(self.c_TLorentzVector).Rho()
   @property
   def Perp2(LorentzVector self):
-    return self.c_TLorentzVector.Perp2()
+    return deref(self.c_TLorentzVector).Perp2()
   @property
   def Pt(LorentzVector self):
-    return self.c_TLorentzVector.Pt()
+    return deref(self.c_TLorentzVector).Pt()
   @property
   def Perp(LorentzVector self):
-    return self.c_TLorentzVector.Perp()
+    return deref(self.c_TLorentzVector).Perp()
   @property
   def Et2(LorentzVector self):
-    return self.c_TLorentzVector.Et2()
+    return deref(self.c_TLorentzVector).Et2()
   @property
   def Et(LorentzVector self):
-    return self.c_TLorentzVector.Et()
+    return deref(self.c_TLorentzVector).Et()
   @property
   def Mag2(LorentzVector self):
-    return self.c_TLorentzVector.Mag2()
+    return deref(self.c_TLorentzVector).Mag2()
   @property
   def M2(LorentzVector self):
-    return self.c_TLorentzVector.M2()
+    return deref(self.c_TLorentzVector).M2()
   @property
   def Mag(LorentzVector self):
-    return self.c_TLorentzVector.Mag()
+    return deref(self.c_TLorentzVector).Mag()
   @property
   def M(LorentzVector self):
-    return self.c_TLorentzVector.M()
+    return deref(self.c_TLorentzVector).M()
   @property
   def Mt2(LorentzVector self):
-    return self.c_TLorentzVector.Mt2()
+    return deref(self.c_TLorentzVector).Mt2()
   @property
   def Mt(LorentzVector self):
-    return self.c_TLorentzVector.Mt()
+    return deref(self.c_TLorentzVector).Mt()
   @property
   def Beta(LorentzVector self):
-    return self.c_TLorentzVector.Beta()
+    return deref(self.c_TLorentzVector).Beta()
   @property
   def Gamma(LorentzVector self):
-    return self.c_TLorentzVector.Gamma()
+    return deref(self.c_TLorentzVector).Gamma()
   @property
   def Plus(LorentzVector self):
-    return self.c_TLorentzVector.Plus()
+    return deref(self.c_TLorentzVector).Plus()
   @property
   def Minus(LorentzVector self):
-    return self.c_TLorentzVector.Minus()
+    return deref(self.c_TLorentzVector).Minus()
   @property
   def Rapidity(LorentzVector self):
-    return self.c_TLorentzVector.Rapidity()
+    return deref(self.c_TLorentzVector).Rapidity()
   @property
   def Eta(LorentzVector self):
-    return self.c_TLorentzVector.Eta()
+    return deref(self.c_TLorentzVector).Eta()
   @property
   def PseudoRapidity(LorentzVector self):
-    return self.c_TLorentzVector.PseudoRapidity()
+    return deref(self.c_TLorentzVector).PseudoRapidity()
 
 cdef class clas12Event:
   cdef:

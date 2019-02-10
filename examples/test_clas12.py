@@ -30,7 +30,7 @@ def W_calc(_e_mu, _e_mu_prime):
 
 file_name = sys.argv[1]
 
-event = clas12Event(file_name)
+event = clas12Event(file_name.encode("utf8"))
 
 total = 0
 start_time = time.time()
