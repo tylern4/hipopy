@@ -53,6 +53,7 @@ cdef extern from "hipo4/dictionary.h" namespace "hipo":
     cdef cppclass dictionary:
       dictionary() except +
       schema getSchema(string)
+      schema getSchema(char *)
 
 cdef extern from "hipo4/bank.h" namespace "hipo":
     cdef cppclass bank:
@@ -537,7 +538,7 @@ cdef class clas12Event:
           self._ft_hodo_dx[i] = self.c_ForwardTagger.getFloat(str_to_char("dx"), k)
           self._ft_hodo_dy[i] = self.c_ForwardTagger.getFloat(str_to_char("dy"), k)
           self._ft_hodo_radius[i] = self.c_ForwardTagger.getFloat(str_to_char("radius"), k)
-#
+
   cdef void load_trk(clas12Event self):
     cdef int len_pid = self.c_Particle.getRows()
     cdef int len_pindex = self.c_Track.getRows()
@@ -560,8 +561,8 @@ cdef class clas12Event:
     cdef int i,k,pindex,detector,layer
     for i in range(0,len_pid):
       for k in range(0,len_pindex):
-        pindex = self.c_Track.getShort("pindex", k)
-        detector = self.c_Track.getByte("detector", k)
+        pindex = self.c_Track.getShort(str_to_char("pindex"), k)
+        detector = self.c_Track.getByte(str_to_char("detector"), k)
 
         if pindex == i and detector == clas12_detector["CVT"]:
           self._cvt_px[i] = self.c_Track.getFloat(str_to_char("px_nomm"), k)
@@ -609,11 +610,11 @@ cdef class clas12Event:
 
     for i in range(0,len_pid):
       for k in range(0,len_pindex):
-        pindex = self.c_Cherenkov.getShort("pindex", k)
-        detector = self.c_Cherenkov.getShort("detector", k)
+        pindex = self.c_Cherenkov.getShort(str_to_char("pindex"), k)
+        detector = self.c_Cherenkov.getShort(str_to_char("detector"), k)
 
       if pindex == i and (detector == clas12_detector["HTCC"] or detector == clas12_detector["LTCC"] or detector == clas12_detector["RICH"]):
-        nphe_tot += self.c_Cherenkov.getFloat("nphe", k)
+        nphe_tot += self.c_Cherenkov.getFloat(str_to_char("nphe"), k)
 
         if pindex == i and detector == clas12_detector["HTCC"]:
           self._cc_htcc_nphe[i] = self.c_Cherenkov.getFloat(str_to_char("nphe"), k)
