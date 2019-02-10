@@ -61,28 +61,6 @@ cdef extern from "hipo4/reader.h" namespace "hipo":
       bool next()
 
 
-
-cdef class node:
-  cdef dictionary*c_dict
-  cdef schema*c_schema
-  cdef bank*c_bank
-  def __init__(self, name):
-      self.name = name
-      self.c_dict = new dictionary()
-      self.c_bank = new bank(self.c_dict.getSchema(self.name))
-  def getInt(self, name, i):
-    return self.c_bank.getInt(name, i)
-  def getShort(self, name, i):
-    return self.c_bank.getShort(name, i)
-  def getByte(self, name, i):
-    return self.c_bank.getByte(name, i)
-  def getFloat(self, name, i):
-    return self.c_brank.getFloat(name, i)
-  def getDouble(self, name, i):
-    return self.c_brank.getDouble(name, i)
-  def getLong(self, name, i):
-    return self.c_brank.getLong(name, i)
-
 cdef char* str_to_char(str name):
   """Convert python string to char*"""
   cdef bytes name_bytes = name.encode()
