@@ -8,7 +8,7 @@ import sys
 
 from clas12 import clas12Event, LorentzVector
 
-from ROOT import TH2D, TFile
+from ROOT import TH2D, TH1D, TFile
 
 SECTORS = 7
 BEAM_E = 10.9
@@ -16,7 +16,7 @@ MASS_ELEC = 0.000511
 
 
 def Q2_calc(_e_mu, _e_mu_prime):
-    """Retruns Q^2 value: q^mu^2 = (e^mu - e^mu')^2 = -Q^2."""
+    """Retruns Q^2 value: -q^mu^2 = -(e^mu - e^mu')^2 = Q^2."""
     _q_mu = _e_mu - _e_mu_prime
     return -_q_mu.Mag2
 
@@ -38,7 +38,8 @@ start_time = time.time()
 sampling_fraction_hist = TH2D(
     "sampling_fraction_hist", "sampling_fraction_hist", 500, 0, 10, 500, 0, 1
 )
-w_vs_q2 = TH2D("w_vs_q2", "w_vs_q2", 500, 0, 10, 500, 0, 1)
+w_vs_q2 = TH2D("w_vs_q2", "w_vs_q2", 500, 0, 5, 500, 0, 5)
+w = TH1D("w", "w", 500, 0, 5)
 
 e_mu = LorentzVector(0.0, 0.0, BEAM_E, energy=BEAM_E)
 
@@ -57,6 +58,7 @@ for evnt in event:
         sf = event.ec_tot_energy(0) / mom
         sampling_fraction_hist.Fill(mom, sf)
         e_mu_prime = LorentzVector(evnt.px(0), evnt.py(0), evnt.pz(0), mass=MASS_ELEC)
+        w.Fill(W_calc(e_mu, e_mu_prime))
         w_vs_q2.Fill(W_calc(e_mu, e_mu_prime), Q2_calc(e_mu, e_mu_prime))
 
 print("\n")
@@ -66,4 +68,5 @@ print(str(total / (time.time() - start_time)), "hz")
 hfile = TFile("sf.root", "RECREATE", "Demo ROOT file with sampling fraction histogram")
 sampling_fraction_hist.Write()
 w_vs_q2.Write()
+w.Write()
 hfile.Write()

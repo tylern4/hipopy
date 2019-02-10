@@ -971,328 +971,418 @@ cdef class clas12Event:
       return NAN
     return self._ec_ecout_lw[i]
 
-def sc_ftof_1a_sec(clas12Event self, int i):
-  if i > self.c_Scintillator.getRows():
-    return -1
-  return self._sc_ftof_1a_sec[i]
-def sc_ftof_1a_time(clas12Event self, int i):
-  if i > self.c_Scintillator.getRows():
-    return NAN
-  return self._sc_ftof_1a_time[i]
-def sc_ftof_1a_path(clas12Event self, int i):
-  if i > self.c_Scintillator.getRows():
-    return NAN
-  return self._sc_ftof_1a_path[i]
-def sc_ftof_1a_energy(clas12Event self, int i):
-  if i > self.c_Scintillator.getRows():
-    return NAN
-  return self._sc_ftof_1a_energy[i]
-def sc_ftof_1a_component(clas12Event self, int i):
-  if i > self.c_Scintillator.getRows():
-    return -1
-  return self._sc_ftof_1a_component[i]
-def sc_ftof_1a_x(clas12Event self, int i):
-  if i > self.c_Scintillator.getRows():
-    return NAN
-  return self._sc_ftof_1a_x[i]
-def sc_ftof_1a_y(clas12Event self, int i):
-  if i > self.c_Scintillator.getRows():
-    return NAN
-  return self._sc_ftof_1a_y[i]
-def sc_ftof_1a_z(clas12Event self, int i):
-  if i > self.c_Scintillator.getRows():
-    return NAN
-  return self._sc_ftof_1a_z[i]
-def sc_ftof_1a_hx(clas12Event self, int i):
-  if i > self.c_Scintillator.getRows():
-    return NAN
-  return self._sc_ftof_1a_hx[i]
-def sc_ftof_1a_hy(clas12Event self, int i):
-  if i > self.c_Scintillator.getRows():
-    return NAN
-  return self._sc_ftof_1a_hy[i]
-def sc_ftof_1a_hz(clas12Event self, int i):
-  if i > self.c_Scintillator.getRows():
-    return NAN
-  return self._sc_ftof_1a_hz[i]
-def sc_ftof_1b_sec(clas12Event self, int i):
-  if i > self.c_Scintillator.getRows():
-    return -1
-  return self._sc_ftof_1b_sec[i]
-def sc_ftof_1b_time(clas12Event self, int i):
-  if i > self.c_Scintillator.getRows():
-    return NAN
-  return self._sc_ftof_1b_time[i]
-def sc_ftof_1b_path(clas12Event self, int i):
-  if i > self.c_Scintillator.getRows():
-    return NAN
-  return self._sc_ftof_1b_path[i]
-def sc_ftof_1b_energy(clas12Event self, int i):
-  if i > self.c_Scintillator.getRows():
-    return NAN
-  return self._sc_ftof_1b_energy[i]
-def sc_ftof_1b_component(clas12Event self, int i):
-  if i > self.c_Scintillator.getRows():
-    return -1
-  return self._sc_ftof_1b_component[i]
-def sc_ftof_1b_x(clas12Event self, int i):
-  if i > self.c_Scintillator.getRows():
-    return NAN
-  return self._sc_ftof_1b_x[i]
-def sc_ftof_1b_y(clas12Event self, int i):
-  if i > self.c_Scintillator.getRows():
-    return NAN
-  return self._sc_ftof_1b_y[i]
-def sc_ftof_1b_z(clas12Event self, int i):
-  if i > self.c_Scintillator.getRows():
-    return NAN
-  return self._sc_ftof_1b_z[i]
-def sc_ftof_1b_hx(clas12Event self, int i):
-  if i > self.c_Scintillator.getRows():
-    return NAN
-  return self._sc_ftof_1b_hx[i]
-def sc_ftof_1b_hy(clas12Event self, int i):
-  if i > self.c_Scintillator.getRows():
-    return NAN
-  return self._sc_ftof_1b_hy[i]
-def sc_ftof_1b_hz(clas12Event self, int i):
-  if i > self.c_Scintillator.getRows():
-    return NAN
-  return self._sc_ftof_1b_hz[i]
-def sc_ftof_2_sec(clas12Event self, int i):
-  if i > self.c_Scintillator.getRows():
-    return -1
-  return self._sc_ftof_2_sec[i]
-def sc_ftof_2_time(clas12Event self, int i):
-  if i > self.c_Scintillator.getRows():
-    return NAN
-  return self._sc_ftof_2_time[i]
-def sc_ftof_2_path(clas12Event self, int i):
-  if i > self.c_Scintillator.getRows():
-    return NAN
-  return self._sc_ftof_2_path[i]
-def sc_ftof_2_energy(clas12Event self, int i):
-  if i > self.c_Scintillator.getRows():
-    return NAN
-  return self._sc_ftof_2_energy[i]
-def sc_ftof_2_component(clas12Event self, int i):
-  if i > self.c_Scintillator.getRows():
-    return -1
-  return self._sc_ftof_2_component[i]
-def sc_ftof_2_x(clas12Event self, int i):
-  if i > self.c_Scintillator.getRows():
-    return NAN
-  return self._sc_ftof_2_x[i]
-def sc_ftof_2_y(clas12Event self, int i):
-  if i > self.c_Scintillator.getRows():
-    return NAN
-  return self._sc_ftof_2_y[i]
-def sc_ftof_2_z(clas12Event self, int i):
-  if i > self.c_Scintillator.getRows():
-    return NAN
-  return self._sc_ftof_2_z[i]
-def sc_ftof_2_hx(clas12Event self, int i):
-  if i > self.c_Scintillator.getRows():
-    return NAN
-  return self._sc_ftof_2_hx[i]
-def sc_ftof_2_hy(clas12Event self, int i):
-  if i > self.c_Scintillator.getRows():
-    return NAN
-  return self._sc_ftof_2_hy[i]
-def sc_ftof_2_hz(clas12Event self, int i):
-  if i > self.c_Scintillator.getRows():
-    return NAN
-  return self._sc_ftof_2_hz[i]
-def sc_ctof_time(clas12Event self, int i):
-  if i > self.c_Scintillator.getRows():
-    return NAN
-  return self._sc_ctof_time[i]
-def sc_ctof_path(clas12Event self, int i):
-  if i > self.c_Scintillator.getRows():
-    return NAN
-  return self._sc_ctof_path[i]
-def sc_ctof_energy(clas12Event self, int i):
-  if i > self.c_Scintillator.getRows():
-    return NAN
-  return self._sc_ctof_energy[i]
-def sc_ctof_component(clas12Event self, int i):
-  if i > self.c_Scintillator.getRows():
-    return -1
-  return self._sc_ctof_component[i]
-def sc_ctof_x(clas12Event self, int i):
-  if i > self.c_Scintillator.getRows():
-    return NAN
-  return self._sc_ctof_x[i]
-def sc_ctof_y(clas12Event self, int i):
-  if i > self.c_Scintillator.getRows():
-    return NAN
-  return self._sc_ctof_y[i]
-def sc_ctof_z(clas12Event self, int i):
-  if i > self.c_Scintillator.getRows():
-    return NAN
-  return self._sc_ctof_z[i]
-def sc_ctof_hx(clas12Event self, int i):
-  if i > self.c_Scintillator.getRows():
-    return NAN
-  return self._sc_ctof_hx[i]
-def sc_ctof_hy(clas12Event self, int i):
-  if i > self.c_Scintillator.getRows():
-    return NAN
-  return self._sc_ctof_hy[i]
-def sc_ctof_hz(clas12Event self, int i):
-  if i > self.c_Scintillator.getRows():
-    return NAN
-  return self._sc_ctof_hz[i]
-def sc_cnd_time(clas12Event self, int i):
-  if i > self.c_Scintillator.getRows():
-    return NAN
-  return self._sc_cnd_time[i]
-def sc_cnd_path(clas12Event self, int i):
-  if i > self.c_Scintillator.getRows():
-    return NAN
-  return self._sc_cnd_path[i]
-def sc_cnd_energy(clas12Event self, int i):
-  if i > self.c_Scintillator.getRows():
-    return NAN
-  return self._sc_cnd_energy[i]
-def sc_cnd_component(clas12Event self, int i):
-  if i > self.c_Scintillator.getRows():
-    return -1
-  return self._sc_cnd_component[i]
-def sc_cnd_x(clas12Event self, int i):
-  if i > self.c_Scintillator.getRows():
-    return NAN
-  return self._sc_cnd_x[i]
-def sc_cnd_y(clas12Event self, int i):
-  if i > self.c_Scintillator.getRows():
-    return NAN
-  return self._sc_cnd_y[i]
-def sc_cnd_z(clas12Event self, int i):
-  if i > self.c_Scintillator.getRows():
-    return NAN
-  return self._sc_cnd_z[i]
-def sc_cnd_hx(clas12Event self, int i):
-  if i > self.c_Scintillator.getRows():
-    return NAN
-  return self._sc_cnd_hx[i]
-def sc_cnd_hy(clas12Event self, int i):
-  if i > self.c_Scintillator.getRows():
-    return NAN
-  return self._sc_cnd_hy[i]
-def sc_cnd_hz(clas12Event self, int i):
-  if i > self.c_Scintillator.getRows():
-    return NAN
-  return self._sc_cnd_hz[i]
+  def sc_ftof_1a_sec(clas12Event self, int i):
+    if i > self.c_Scintillator.getRows():
+      return -1
+    return self._sc_ftof_1a_sec[i]
+  def sc_ftof_1a_time(clas12Event self, int i):
+    if i > self.c_Scintillator.getRows():
+      return NAN
+    return self._sc_ftof_1a_time[i]
+  def sc_ftof_1a_path(clas12Event self, int i):
+    if i > self.c_Scintillator.getRows():
+      return NAN
+    return self._sc_ftof_1a_path[i]
+  def sc_ftof_1a_energy(clas12Event self, int i):
+    if i > self.c_Scintillator.getRows():
+      return NAN
+    return self._sc_ftof_1a_energy[i]
+  def sc_ftof_1a_component(clas12Event self, int i):
+    if i > self.c_Scintillator.getRows():
+      return -1
+    return self._sc_ftof_1a_component[i]
+  def sc_ftof_1a_x(clas12Event self, int i):
+    if i > self.c_Scintillator.getRows():
+      return NAN
+    return self._sc_ftof_1a_x[i]
+  def sc_ftof_1a_y(clas12Event self, int i):
+    if i > self.c_Scintillator.getRows():
+      return NAN
+    return self._sc_ftof_1a_y[i]
+  def sc_ftof_1a_z(clas12Event self, int i):
+    if i > self.c_Scintillator.getRows():
+      return NAN
+    return self._sc_ftof_1a_z[i]
+  def sc_ftof_1a_hx(clas12Event self, int i):
+    if i > self.c_Scintillator.getRows():
+      return NAN
+    return self._sc_ftof_1a_hx[i]
+  def sc_ftof_1a_hy(clas12Event self, int i):
+    if i > self.c_Scintillator.getRows():
+      return NAN
+    return self._sc_ftof_1a_hy[i]
+  def sc_ftof_1a_hz(clas12Event self, int i):
+    if i > self.c_Scintillator.getRows():
+      return NAN
+    return self._sc_ftof_1a_hz[i]
+  def sc_ftof_1b_sec(clas12Event self, int i):
+    if i > self.c_Scintillator.getRows():
+      return -1
+    return self._sc_ftof_1b_sec[i]
+  def sc_ftof_1b_time(clas12Event self, int i):
+    if i > self.c_Scintillator.getRows():
+      return NAN
+    return self._sc_ftof_1b_time[i]
+  def sc_ftof_1b_path(clas12Event self, int i):
+    if i > self.c_Scintillator.getRows():
+      return NAN
+    return self._sc_ftof_1b_path[i]
+  def sc_ftof_1b_energy(clas12Event self, int i):
+    if i > self.c_Scintillator.getRows():
+      return NAN
+    return self._sc_ftof_1b_energy[i]
+  def sc_ftof_1b_component(clas12Event self, int i):
+    if i > self.c_Scintillator.getRows():
+      return -1
+    return self._sc_ftof_1b_component[i]
+  def sc_ftof_1b_x(clas12Event self, int i):
+    if i > self.c_Scintillator.getRows():
+      return NAN
+    return self._sc_ftof_1b_x[i]
+  def sc_ftof_1b_y(clas12Event self, int i):
+    if i > self.c_Scintillator.getRows():
+      return NAN
+    return self._sc_ftof_1b_y[i]
+  def sc_ftof_1b_z(clas12Event self, int i):
+    if i > self.c_Scintillator.getRows():
+      return NAN
+    return self._sc_ftof_1b_z[i]
+  def sc_ftof_1b_hx(clas12Event self, int i):
+    if i > self.c_Scintillator.getRows():
+      return NAN
+    return self._sc_ftof_1b_hx[i]
+  def sc_ftof_1b_hy(clas12Event self, int i):
+    if i > self.c_Scintillator.getRows():
+      return NAN
+    return self._sc_ftof_1b_hy[i]
+  def sc_ftof_1b_hz(clas12Event self, int i):
+    if i > self.c_Scintillator.getRows():
+      return NAN
+    return self._sc_ftof_1b_hz[i]
+  def sc_ftof_2_sec(clas12Event self, int i):
+    if i > self.c_Scintillator.getRows():
+      return -1
+    return self._sc_ftof_2_sec[i]
+  def sc_ftof_2_time(clas12Event self, int i):
+    if i > self.c_Scintillator.getRows():
+      return NAN
+    return self._sc_ftof_2_time[i]
+  def sc_ftof_2_path(clas12Event self, int i):
+    if i > self.c_Scintillator.getRows():
+      return NAN
+    return self._sc_ftof_2_path[i]
+  def sc_ftof_2_energy(clas12Event self, int i):
+    if i > self.c_Scintillator.getRows():
+      return NAN
+    return self._sc_ftof_2_energy[i]
+  def sc_ftof_2_component(clas12Event self, int i):
+    if i > self.c_Scintillator.getRows():
+      return -1
+    return self._sc_ftof_2_component[i]
+  def sc_ftof_2_x(clas12Event self, int i):
+    if i > self.c_Scintillator.getRows():
+      return NAN
+    return self._sc_ftof_2_x[i]
+  def sc_ftof_2_y(clas12Event self, int i):
+    if i > self.c_Scintillator.getRows():
+      return NAN
+    return self._sc_ftof_2_y[i]
+  def sc_ftof_2_z(clas12Event self, int i):
+    if i > self.c_Scintillator.getRows():
+      return NAN
+    return self._sc_ftof_2_z[i]
+  def sc_ftof_2_hx(clas12Event self, int i):
+    if i > self.c_Scintillator.getRows():
+      return NAN
+    return self._sc_ftof_2_hx[i]
+  def sc_ftof_2_hy(clas12Event self, int i):
+    if i > self.c_Scintillator.getRows():
+      return NAN
+    return self._sc_ftof_2_hy[i]
+  def sc_ftof_2_hz(clas12Event self, int i):
+    if i > self.c_Scintillator.getRows():
+      return NAN
+    return self._sc_ftof_2_hz[i]
+  def sc_ctof_time(clas12Event self, int i):
+    if i > self.c_Scintillator.getRows():
+      return NAN
+    return self._sc_ctof_time[i]
+  def sc_ctof_path(clas12Event self, int i):
+    if i > self.c_Scintillator.getRows():
+      return NAN
+    return self._sc_ctof_path[i]
+  def sc_ctof_energy(clas12Event self, int i):
+    if i > self.c_Scintillator.getRows():
+      return NAN
+    return self._sc_ctof_energy[i]
+  def sc_ctof_component(clas12Event self, int i):
+    if i > self.c_Scintillator.getRows():
+      return -1
+    return self._sc_ctof_component[i]
+  def sc_ctof_x(clas12Event self, int i):
+    if i > self.c_Scintillator.getRows():
+      return NAN
+    return self._sc_ctof_x[i]
+  def sc_ctof_y(clas12Event self, int i):
+    if i > self.c_Scintillator.getRows():
+      return NAN
+    return self._sc_ctof_y[i]
+  def sc_ctof_z(clas12Event self, int i):
+    if i > self.c_Scintillator.getRows():
+      return NAN
+    return self._sc_ctof_z[i]
+  def sc_ctof_hx(clas12Event self, int i):
+    if i > self.c_Scintillator.getRows():
+      return NAN
+    return self._sc_ctof_hx[i]
+  def sc_ctof_hy(clas12Event self, int i):
+    if i > self.c_Scintillator.getRows():
+      return NAN
+    return self._sc_ctof_hy[i]
+  def sc_ctof_hz(clas12Event self, int i):
+    if i > self.c_Scintillator.getRows():
+      return NAN
+    return self._sc_ctof_hz[i]
+  def sc_cnd_time(clas12Event self, int i):
+    if i > self.c_Scintillator.getRows():
+      return NAN
+    return self._sc_cnd_time[i]
+  def sc_cnd_path(clas12Event self, int i):
+    if i > self.c_Scintillator.getRows():
+      return NAN
+    return self._sc_cnd_path[i]
+  def sc_cnd_energy(clas12Event self, int i):
+    if i > self.c_Scintillator.getRows():
+      return NAN
+    return self._sc_cnd_energy[i]
+  def sc_cnd_component(clas12Event self, int i):
+    if i > self.c_Scintillator.getRows():
+      return -1
+    return self._sc_cnd_component[i]
+  def sc_cnd_x(clas12Event self, int i):
+    if i > self.c_Scintillator.getRows():
+      return NAN
+    return self._sc_cnd_x[i]
+  def sc_cnd_y(clas12Event self, int i):
+    if i > self.c_Scintillator.getRows():
+      return NAN
+    return self._sc_cnd_y[i]
+  def sc_cnd_z(clas12Event self, int i):
+    if i > self.c_Scintillator.getRows():
+      return NAN
+    return self._sc_cnd_z[i]
+  def sc_cnd_hx(clas12Event self, int i):
+    if i > self.c_Scintillator.getRows():
+      return NAN
+    return self._sc_cnd_hx[i]
+  def sc_cnd_hy(clas12Event self, int i):
+    if i > self.c_Scintillator.getRows():
+      return NAN
+    return self._sc_cnd_hy[i]
+  def sc_cnd_hz(clas12Event self, int i):
+    if i > self.c_Scintillator.getRows():
+      return NAN
+    return self._sc_cnd_hz[i]
 
-def cc_nphe_tot(clas12Event self, int i):
-  if i > self.c_Cherenkov.getRows():
-    return NAN
-  return self._cc_nphe_tot[i]
-def cc_ltcc_sec(clas12Event self, int i):
-  if i > self.c_Cherenkov.getRows():
-    return NAN
-  return self._cc_ltcc_sec[i]
-def cc_ltcc_nphe(clas12Event self, int i):
-  if i > self.c_Cherenkov.getRows():
-    return -1
-  return self._cc_ltcc_nphe[i]
-def cc_ltcc_time(clas12Event self, int i):
-  if i > self.c_Cherenkov.getRows():
-    return NAN
-  return self._cc_ltcc_time[i]
-def cc_ltcc_path(clas12Event self, int i):
-  if i > self.c_Cherenkov.getRows():
-    return NAN
-  return self._cc_ltcc_path[i]
-def cc_ltcc_theta(clas12Event self, int i):
-  if i > self.c_Cherenkov.getRows():
-    return NAN
-  return self._cc_ltcc_theta[i]
-def cc_ltcc_phi(clas12Event self, int i):
-  if i > self.c_Cherenkov.getRows():
-    return NAN
-  return self._cc_ltcc_phi[i]
-def cc_htcc_sec(clas12Event self, int i):
-  if i > self.c_Cherenkov.getRows():
-    return NAN
-  return self._cc_htcc_sec[i]
-def cc_htcc_nphe(clas12Event self, int i):
-  if i > self.c_Cherenkov.getRows():
-    return -1
-  return self._cc_htcc_nphe[i]
-def cc_htcc_time(clas12Event self, int i):
-  if i > self.c_Cherenkov.getRows():
-    return NAN
-  return self._cc_htcc_time[i]
-def cc_htcc_path(clas12Event self, int i):
-  if i > self.c_Cherenkov.getRows():
-    return NAN
-  return self._cc_htcc_path[i]
-def cc_htcc_theta(clas12Event self, int i):
-  if i > self.c_Cherenkov.getRows():
-    return NAN
-  return self._cc_htcc_theta[i]
-def cc_htcc_phi(clas12Event self, int i):
-  if i > self.c_Cherenkov.getRows():
-    return NAN
-  return self._cc_htcc_phi[i]
-def cc_rich_sec(clas12Event self, int i):
-  if i > self.c_Cherenkov.getRows():
-    return NAN
-  return self._cc_rich_sec[i]
-def cc_rich_nphe(clas12Event self, int i):
-  if i > self.c_Cherenkov.getRows():
-    return -1
-  return self._cc_rich_nphe[i]
-def cc_rich_time(clas12Event self, int i):
-  if i > self.c_Cherenkov.getRows():
-    return NAN
-  return self._cc_rich_time[i]
-def cc_rich_path(clas12Event self, int i):
-  if i > self.c_Cherenkov.getRows():
-    return NAN
-  return self._cc_rich_path[i]
-def cc_rich_theta(clas12Event self, int i):
-  if i > self.c_Cherenkov.getRows():
-    return NAN
-  return self._cc_rich_theta[i]
-def cc_rich_phi(clas12Event self, int i):
-  if i > self.c_Cherenkov.getRows():
-    return NAN
-  return self._cc_rich_phi[i]
-"""
-    # FT
-    np.ndarray ft_cal_energy
-    np.ndarray ft_cal_time
-    np.ndarray ft_cal_path
-    np.ndarray ft_cal_x
-    np.ndarray ft_cal_y
-    np.ndarray ft_cal_z
-    np.ndarray ft_cal_dx
-    np.ndarray ft_cal_dy
-    np.ndarray ft_cal_radius
-    np.ndarray ft_hodo_energy
-    np.ndarray ft_hodo_time
-    np.ndarray ft_hodo_path
-    np.ndarray ft_hodo_x
-    np.ndarray ft_hodo_y
-    np.ndarray ft_hodo_z
-    np.ndarray ft_hodo_dx
-    np.ndarray ft_hodo_dy
-    np.ndarray ft_hodo_radius
+  def cc_nphe_tot(clas12Event self, int i):
+    if i > self.c_Cherenkov.getRows():
+      return NAN
+    return self._cc_nphe_tot[i]
+  def cc_ltcc_sec(clas12Event self, int i):
+    if i > self.c_Cherenkov.getRows():
+      return NAN
+    return self._cc_ltcc_sec[i]
+  def cc_ltcc_nphe(clas12Event self, int i):
+    if i > self.c_Cherenkov.getRows():
+      return -1
+    return self._cc_ltcc_nphe[i]
+  def cc_ltcc_time(clas12Event self, int i):
+    if i > self.c_Cherenkov.getRows():
+      return NAN
+    return self._cc_ltcc_time[i]
+  def cc_ltcc_path(clas12Event self, int i):
+    if i > self.c_Cherenkov.getRows():
+      return NAN
+    return self._cc_ltcc_path[i]
+  def cc_ltcc_theta(clas12Event self, int i):
+    if i > self.c_Cherenkov.getRows():
+      return NAN
+    return self._cc_ltcc_theta[i]
+  def cc_ltcc_phi(clas12Event self, int i):
+    if i > self.c_Cherenkov.getRows():
+      return NAN
+    return self._cc_ltcc_phi[i]
+  def cc_htcc_sec(clas12Event self, int i):
+    if i > self.c_Cherenkov.getRows():
+      return NAN
+    return self._cc_htcc_sec[i]
+  def cc_htcc_nphe(clas12Event self, int i):
+    if i > self.c_Cherenkov.getRows():
+      return -1
+    return self._cc_htcc_nphe[i]
+  def cc_htcc_time(clas12Event self, int i):
+    if i > self.c_Cherenkov.getRows():
+      return NAN
+    return self._cc_htcc_time[i]
+  def cc_htcc_path(clas12Event self, int i):
+    if i > self.c_Cherenkov.getRows():
+      return NAN
+    return self._cc_htcc_path[i]
+  def cc_htcc_theta(clas12Event self, int i):
+    if i > self.c_Cherenkov.getRows():
+      return NAN
+    return self._cc_htcc_theta[i]
+  def cc_htcc_phi(clas12Event self, int i):
+    if i > self.c_Cherenkov.getRows():
+      return NAN
+    return self._cc_htcc_phi[i]
+  def cc_rich_sec(clas12Event self, int i):
+    if i > self.c_Cherenkov.getRows():
+      return NAN
+    return self._cc_rich_sec[i]
+  def cc_rich_nphe(clas12Event self, int i):
+    if i > self.c_Cherenkov.getRows():
+      return -1
+    return self._cc_rich_nphe[i]
+  def cc_rich_time(clas12Event self, int i):
+    if i > self.c_Cherenkov.getRows():
+      return NAN
+    return self._cc_rich_time[i]
+  def cc_rich_path(clas12Event self, int i):
+    if i > self.c_Cherenkov.getRows():
+      return NAN
+    return self._cc_rich_path[i]
+  def cc_rich_theta(clas12Event self, int i):
+    if i > self.c_Cherenkov.getRows():
+      return NAN
+    return self._cc_rich_theta[i]
+  def cc_rich_phi(clas12Event self, int i):
+    if i > self.c_Cherenkov.getRows():
+      return NAN
+    return self._cc_rich_phi[i]
 
-    # Trk
-    np.ndarray dc_sec
-    np.ndarray dc_px
-    np.ndarray dc_py
-    np.ndarray dc_pz
-    np.ndarray dc_vx
-    np.ndarray dc_vy
-    np.ndarray dc_vz
-    np.ndarray cvt_px
-    np.ndarray cvt_py
-    np.ndarray cvt_pz
-    np.ndarray cvt_vx
-    np.ndarray cvt_vy
-    np.ndarray cvt_vz
-"""
+  def ft_cal_energy(clas12Event self, int i):
+    if i > self.c_ForwardTagger.getRows():
+      return NAN
+    return self._ft_cal_energy[i]
+  def ft_cal_time(clas12Event self, int i):
+    if i > self.c_ForwardTagger.getRows():
+      return NAN
+    return self._ft_cal_time[i]
+  def ft_cal_path(clas12Event self, int i):
+    if i > self.c_ForwardTagger.getRows():
+      return NAN
+    return self._ft_cal_path[i]
+  def ft_cal_x(clas12Event self, int i):
+    if i > self.c_ForwardTagger.getRows():
+      return NAN
+    return self._ft_cal_x[i]
+  def ft_cal_y(clas12Event self, int i):
+    if i > self.c_ForwardTagger.getRows():
+      return NAN
+    return self._ft_cal_y[i]
+  def ft_cal_z(clas12Event self, int i):
+    if i > self.c_ForwardTagger.getRows():
+      return NAN
+    return self._ft_cal_z[i]
+  def ft_cal_dx(clas12Event self, int i):
+    if i > self.c_ForwardTagger.getRows():
+      return NAN
+    return self._ft_cal_dx[i]
+  def ft_cal_dy(clas12Event self, int i):
+    if i > self.c_ForwardTagger.getRows():
+      return NAN
+    return self._ft_cal_dy[i]
+  def ft_cal_radius(clas12Event self, int i):
+    if i > self.c_ForwardTagger.getRows():
+      return NAN
+    return self._ft_cal_radius[i]
+  def ft_hodo_energy(clas12Event self, int i):
+    if i > self.c_ForwardTagger.getRows():
+      return NAN
+    return self._ft_hodo_energy[i]
+  def ft_hodo_time(clas12Event self, int i):
+    if i > self.c_ForwardTagger.getRows():
+      return NAN
+    return self._ft_hodo_time[i]
+  def ft_hodo_path(clas12Event self, int i):
+    if i > self.c_ForwardTagger.getRows():
+      return NAN
+    return self._ft_hodo_path[i]
+  def ft_hodo_x(clas12Event self, int i):
+    if i > self.c_ForwardTagger.getRows():
+      return NAN
+    return self._ft_hodo_x[i]
+  def ft_hodo_y(clas12Event self, int i):
+    if i > self.c_ForwardTagger.getRows():
+      return NAN
+    return self._ft_hodo_y[i]
+  def ft_hodo_z(clas12Event self, int i):
+    if i > self.c_ForwardTagger.getRows():
+      return NAN
+    return self._ft_hodo_z[i]
+  def ft_hodo_dx(clas12Event self, int i):
+    if i > self.c_ForwardTagger.getRows():
+      return NAN
+    return self._ft_hodo_dx[i]
+  def ft_hodo_dy(clas12Event self, int i):
+    if i > self.c_ForwardTagger.getRows():
+      return NAN
+    return self._ft_hodo_dy[i]
+  def ft_hodo_radius(clas12Event self, int i):
+    if i > self.c_ForwardTagger.getRows():
+      return NAN
+    return self._ft_hodo_radius[i]
+
+  def dc_sec(clas12Event self, int i):
+    if i > self.c_Track.getRows():
+      return -1
+    return self._dc_sec[i]
+  def dc_px(clas12Event self, int i):
+    if i > self.c_Track.getRows():
+      return NAN
+    return self._dc_px[i]
+  def dc_py(clas12Event self, int i):
+    if i > self.c_Track.getRows():
+      return NAN
+    return self._dc_py[i]
+  def dc_pz(clas12Event self, int i):
+    if i > self.c_Track.getRows():
+      return NAN
+    return self._dc_pz[i]
+  def dc_vx(clas12Event self, int i):
+    if i > self.c_Track.getRows():
+      return NAN
+    return self._dc_vx[i]
+  def dc_vy(clas12Event self, int i):
+    if i > self.c_Track.getRows():
+      return NAN
+    return self._dc_vy[i]
+  def dc_vz(clas12Event self, int i):
+    if i > self.c_Track.getRows():
+      return NAN
+    return self._dc_vz[i]
+  def cvt_px(clas12Event self, int i):
+    if i > self.c_Track.getRows():
+      return NAN
+    return self._cvt_px[i]
+  def cvt_py(clas12Event self, int i):
+    if i > self.c_Track.getRows():
+      return NAN
+    return self._cvt_py[i]
+  def cvt_pz(clas12Event self, int i):
+    if i > self.c_Track.getRows():
+      return NAN
+    return self._cvt_pz[i]
+  def cvt_vx(clas12Event self, int i):
+    if i > self.c_Track.getRows():
+      return NAN
+    return self._cvt_vx[i]
+  def cvt_vy(clas12Event self, int i):
+    if i > self.c_Track.getRows():
+      return NAN
+    return self._cvt_vy[i]
+  def cvt_vz(clas12Event self, int i):
+    if i > self.c_Track.getRows():
+      return NAN
+    return self._cvt_vz[i]
