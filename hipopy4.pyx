@@ -22,12 +22,19 @@ cdef extern from "hipo4/dictionary.h" namespace "hipo":
     cdef cppclass dictionary:
       dictionary() except +
       schema getSchema(string)
+      schema getSchema(char *)
 
 cdef extern from "hipo4/bank.h" namespace "hipo":
     cdef cppclass bank:
       bank() except +
       bank(schema) except +
       int    getRows()
+      int    getInt(char*, int)
+      int    getShort(char*, int)
+      int    getByte(char*, int)
+      float  getFloat(char*, int)
+      double getDouble(char*, int)
+      long   getLong(char*, int)
       int    getInt(string, int)
       int    getShort(string, int)
       int    getByte(string, int)
