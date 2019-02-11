@@ -87,8 +87,9 @@ cdef extern from "hipo4/reader.h" namespace "hipo":
       reader() except +
       reader(char*) except +
       reader(string) except +
-      void read(event)
+      void        read(event)
       dictionary* dictionary()
+      long numEvents()
       void readDictionary(dictionary)
       void open(string)
       bool hasNext()
@@ -460,7 +461,8 @@ cdef class clas12Event:
       return self
     else:
       raise StopIteration
-
+  def numEvents(clas12Event self):
+    return self.c_hiporeader.numEvents()
   def __len__(clas12Event self):
     return self.c_Particle.getRows()
   def pid(clas12Event self, int i):

@@ -173,6 +173,7 @@ namespace hipo {
     void              open(std::string filename) { open(filename.c_str()); };
     bool              hasNext();
     bool              next();
+    long              numEvents() { return readerEventIndex.getMaxEvents(); }
     bool              next(hipo::event& dataevent);
     void              read(hipo::event& dataevent);
     void              printWarning();

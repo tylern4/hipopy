@@ -2,14 +2,20 @@ cmake_minimum_required(VERSION 3.5)
 project(hipoio)
 set(VERSION 0.0.1)
 
+set(CMAKE_MODULE_PATH
+   ${CMAKE_MODULE_PATH}
+   ${PROJECT_SOURCE_DIR}/cmake)
+
+find_package(PythonInterp)
+find_package(PythonLibs)
+find_package(PythonExtensions)
+find_package(Cython REQUIRED)
+find_package(NumPy REQUIRED)
+
 list(APPEND CMAKE_PREFIX_PATH $ENV{ROOTSYS})
 message(STATUS "ROOTSYS: " $ENV{ROOTSYS})
 find_package(ROOT REQUIRED COMPONENTS RIO Net)
 include(${ROOT_USE_FILE})
-
-set(CMAKE_MODULE_PATH
-   ${CMAKE_MODULE_PATH}
-   ${PROJECT_SOURCE_DIR}/cmake)
 
 include_directories(${PYTHON_INCLUDE_DIRS} ${PYTHON_NUMPY_INCLUDE_DIR} ${NumPy_INCLUDE_DIR})
 include_directories(src/hipocpp3/include)
@@ -17,11 +23,6 @@ add_subdirectory(src/hipocpp3)
 
 include_directories(src/hipocpp4/include)
 add_subdirectory(src/hipocpp4)
-
-find_package(PythonInterp)
-find_package(PythonLibs)
-find_package(PythonExtensions)
-find_package(Cython REQUIRED)
 
 set(CMAKE_CXX_FLAGS "${ROOT_CXX_FLAGS}")
 find_package(LZ4 REQUIRED)

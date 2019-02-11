@@ -5,7 +5,7 @@ from __future__ import division
 import numpy as np
 import time
 import sys
-
+from tqdm import tqdm
 from clas12 import clas12Event, LorentzVector
 
 from ROOT import TH2D, TH1D, TFile
@@ -43,19 +43,19 @@ w_hist = TH1D("w", "w", 500, 0, 5)
 
 e_mu = LorentzVector(0.0, 0.0, BEAM_E, energy=BEAM_E)
 
-while event.next():
+total = 0
+t = tqdm(total=event.numEvents())
+for evnt in event:
     total += 1
-    if total % 10000 == 0:
-        print(str(total / (time.time() - start_time)), "hz")
-    if event.charge(0) != -1:
+    if total % 1000 == 0:
+        t.update(1000)
+    if evnt.charge(0) != -1:
         continue
 
-    mom = np.sqrt(
-        np.square(event.px(0)) + np.square(event.py(0)) + np.square(event.pz(0))
-    )
-    sf = event.ec_tot_energy(0) / mom
+    mom = np.sqrt(np.square(evnt.px(0)) + np.square(evnt.py(0)) + np.square(evnt.pz(0)))
+    sf = evnt.ec_tot_energy(0) / mom
     sampling_fraction_hist.Fill(mom, sf)
-    e_mu_prime = LorentzVector(event.px(0), event.py(0), event.pz(0), mass=MASS_ELEC)
+    e_mu_prime = LorentzVector(evnt.px(0), evnt.py(0), evnt.pz(0), mass=MASS_ELEC)
     w = W_calc(e_mu, e_mu_prime)
     q2 = Q2_calc(e_mu, e_mu_prime)
     w_hist.Fill(w)
