@@ -38,28 +38,28 @@ start_time = time.time()
 sampling_fraction_hist = TH2D(
     "sampling_fraction_hist", "sampling_fraction_hist", 500, 0, 10, 500, 0, 1
 )
-w_vs_q2 = TH2D("w_vs_q2", "w_vs_q2", 500, 0, 5, 500, 0, 5)
-w = TH1D("w", "w", 500, 0, 5)
+w_vs_q2_hist = TH2D("w_vs_q2", "w_vs_q2", 500, 0, 5, 500, 0, 5)
+w_hist = TH1D("w", "w", 500, 0, 5)
 
 e_mu = LorentzVector(0.0, 0.0, BEAM_E, energy=BEAM_E)
 
-for evnt in event:
+while event.next():
     total += 1
     if total % 10000 == 0:
         print(str(total / (time.time() - start_time)), "hz")
-    if len(evnt) == 0:
+    if event.charge(0) != -1:
         continue
-    if total > 50000:
-        break
-    if evnt.charge(0) == -1:
-        mom = np.sqrt(
-            np.square(evnt.px(0)) + np.square(evnt.py(0)) + np.square(evnt.pz(0))
-        )
-        sf = event.ec_tot_energy(0) / mom
-        sampling_fraction_hist.Fill(mom, sf)
-        e_mu_prime = LorentzVector(evnt.px(0), evnt.py(0), evnt.pz(0), mass=MASS_ELEC)
-        w.Fill(W_calc(e_mu, e_mu_prime))
-        w_vs_q2.Fill(W_calc(e_mu, e_mu_prime), Q2_calc(e_mu, e_mu_prime))
+
+    mom = np.sqrt(
+        np.square(event.px(0)) + np.square(event.py(0)) + np.square(event.pz(0))
+    )
+    sf = event.ec_tot_energy(0) / mom
+    sampling_fraction_hist.Fill(mom, sf)
+    e_mu_prime = LorentzVector(event.px(0), event.py(0), event.pz(0), mass=MASS_ELEC)
+    w = W_calc(e_mu, e_mu_prime)
+    q2 = Q2_calc(e_mu, e_mu_prime)
+    w_hist.Fill(w)
+    w_vs_q2_hist.Fill(w, q2)
 
 print("\n")
 print(str(time.time() - start_time), "sec")
@@ -67,6 +67,6 @@ print(str(total / (time.time() - start_time)), "hz")
 
 hfile = TFile("sf.root", "RECREATE", "Demo ROOT file with sampling fraction histogram")
 sampling_fraction_hist.Write()
-w_vs_q2.Write()
-w.Write()
+w_vs_q2_hist.Write()
+w_hist.Write()
 hfile.Write()
